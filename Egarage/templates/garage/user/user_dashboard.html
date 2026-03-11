@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="form-container">
+    <h2>USER DASHBOARD</h2>
+    <hr>
+    <p style="font-size: 18px;"><strong>Role:</strong> {{ request.user.role }}</p>
+    <p style="font-size: 18px;"><strong>Email:</strong> {{ request.user.email }}</p>
+    <br>
+    <a href="{% url 'logout' %}" class="btn-primary" style="background-color: red; text-align: center; text-decoration: none; display: block;">Logout</a>
+</div>
+{% endblock content %}
