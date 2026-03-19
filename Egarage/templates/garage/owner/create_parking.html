@@ -1,6 +1,17 @@
-<form method= "post" enctype="multipart/form-data">
+{% extends 'base.html' %}
 
-    {% csrf_token %}
-    {{form.as_p}}
-    <button type="submit">Create Parking</button>
-</form>
+{% block content %}
+<div class="form-container" style="max-width: 500px;">
+    <h2 style="text-align: center; color: #333; margin-bottom: 20px;">Add New Garage Service</h2>
+    
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-primary" style="background-color: #28a745; margin-top: 10px;">Save Service</button>
+    </form>
+    
+    <div style="text-align: center; margin-top: 15px;">
+        <a href="{% url 'owner_dashboard' %}" style="color: red; text-decoration: none;">Cancel</a>
+    </div>
+</div>
+{% endblock %}

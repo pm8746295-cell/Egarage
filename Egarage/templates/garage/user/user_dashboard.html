@@ -1,12 +1,45 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="form-container">
-    <h2>USER DASHBOARD</h2>
-    <hr>
-    <p style="font-size: 18px;"><strong>Role:</strong> {{ request.user.role }}</p>
-    <p style="font-size: 18px;"><strong>Email:</strong> {{ request.user.email }}</p>
-    <br>
-    <a href="{% url 'logout' %}" class="btn-primary" style="background-color: red; text-align: center; text-decoration: none; display: block;">Logout</a>
+<div style="padding: 20px;">
+    
+    <div class="form-container" style="margin-bottom: 40px;">
+        <h2 style="text-align: center;">USER DASHBOARD</h2>
+        <hr>
+        <p style="font-size: 18px;"><strong>Role:</strong> {{ request.user.role }}</p>
+        <p style="font-size: 18px;"><strong>Email:</strong> {{ request.user.email }}</p>
+        <br>
+        <a href="{% url 'logout' %}" class="btn-primary" style="background-color: red; text-align: center; text-decoration: none; display: block;">Logout</a>
+    </div>
+
+    <h3>Available Garage Services</h3>
+    
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 15px;">
+        {% for service in services %}
+            <div style="border: 1px solid #ccc; padding: 15px; width: 250px; border-radius: 8px; background-color: white;">
+                <h4>{{ service.name }}</h4>
+                
+                {% if service.parkingImage %}
+                    <img src="{{ service.parkingImage.url }}" alt="Service Image" style="width: 100%; height: 150px; object-fit: cover; border-radius: 5px;">
+                {% endif %}
+                
+                <p style="margin-top: 10px;">Status: 
+                    {% if service.is_booked %} 
+                        <span style="color:red; font-weight: bold;">Currently Unavailable</span> 
+                    {% else %} 
+                        <span style="color:green; font-weight: bold;">Available</span> 
+                    {% endif %}
+                </p>
+
+                {% if not service.is_booked %}
+                    <div style="margin-top: 15px;">
+                        <a href="{% url 'book_service' service.id %}" style="background-color: #007bff; color: white; padding: 10px; text-decoration: none; border-radius: 5px; display: block; text-align: center; font-weight: bold;">Book Now</a>
+                    </div>
+                {% endif %}
+            </div>
+        {% empty %}
+            <p>No services are currently available.</p>
+        {% endfor %}
+    </div>
 </div>
-{% endblock content %}
+{% endblock %}

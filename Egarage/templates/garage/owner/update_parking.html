@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="form-container" style="max-width: 500px;">
+    <h2 style="text-align: center; color: #333; margin-bottom: 20px;">Edit Garage Service</h2>
+    
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-primary" style="background-color: #ffc107; color: black; margin-top: 10px; font-weight: bold;">Update Service</button>
+    </form>
+    
+    <div style="text-align: center; margin-top: 15px;">
+        <a href="{% url 'owner_dashboard' %}" style="color: red; text-decoration: none;">Cancel</a>
+    </div>
+</div>
+{% endblock %}

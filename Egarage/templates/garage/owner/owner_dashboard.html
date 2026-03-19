@@ -1,29 +1,44 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div style="padding: 20px;">
-        <h1>OWNER DASHBOARD</h1>
-        <p>Welcome: {{ request.user.email }}</p>
-        
-        <a href="{% url 'create_parking' %}" style="background-color: blue; color: white; padding: 10px; text-decoration: none;">+ Add New Parking</a>
-        
-        <hr>
-        <h2>My Parking Slots</h2>
-        
-        <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
-            {% for parking in parkings %}
-                <div style="border: 1px solid black; padding: 15px; width: 250px;">
-                    <h3>{{ parking.name }}</h3>
-                    
-                    {% if parking.parkingImage %}
-                        <img src="{{ parking.parkingImage.url }}" alt="Parking Image" style="width: 100%; height: 150px; object-fit: cover;">
-                    {% endif %}
-                    
-                    <p>Status: {% if parking.is_booked %} <span style="color:red;">Booked</span> {% else %} <span style="color:green;">Available</span> {% endif %}</p>
-                </div>
-            {% empty %}
-                <p>No parking slots added yet.</p>
-            {% endfor %}
+<div style="padding: 20px;">
+    
+    <div style="margin-bottom: 20px; background-color: white; padding: 15px; border-radius: 8px; border: 1px solid #ccc;">
+        <h2>EGARAGE OWNER DASHBOARD</h2>
+        <p>Welcome Owner: <strong>{{ request.user.email }}</strong></p>
+        <br>
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <a href="{% url 'create_parking' %}" style="background-color: blue; color: white; text-decoration: none; padding: 10px 15px; border-radius: 5px; font-weight: bold;">+ Add New Garage Service</a>
+            <a href="{% url 'logout' %}" style="color: red; font-weight: bold; text-decoration: none;">Logout</a>
         </div>
     </div>
-{% endblock content %}
+
+    <hr>
+    
+    <h3>My Garage Services</h3>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 15px;">
+        {% for parking in parkings %}
+            <div style="border: 1px solid #ccc; padding: 15px; width: 250px; border-radius: 8px; background-color: white;">
+                <h4>{{ parking.name }}</h4>
+                {% if parking.parkingImage %}
+                    <img src="{{ parking.parkingImage.url }}" alt="Service Image" style="width: 100%; height: 150px; object-fit: cover; border-radius: 5px;">
+                {% endif %}
+                <p style="margin-top: 10px;">Status: 
+                    {% if parking.is_booked %} 
+                        <span style="color:red; font-weight: bold;">Currently Unavailable</span> 
+                    {% else %} 
+                        <span style="color:green; font-weight: bold;">Available</span> 
+                    {% endif %}
+                </p>
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <a href="{% url 'update_parking' parking.id %}" style="background-color: #ffc107; color: black; padding: 8px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 14px;">Edit Service</a>
+                    
+                    <a href="{% url 'delete_parking' parking.id %}" style="background-color: #dc3545; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 14px;" onclick="return confirm('Are you sure you want to delete this service?');">Delete</a>
+                </div>
+            </div>
+        {% empty %}
+            <p>No services added yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="form-container">
+    <h2 style="text-align: center; color: #333;">Confirm Your Booking</h2>
+    <hr>
+    
+    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+        <h3>Service Details:</h3>
+        <p style="font-size: 18px;"><strong>Service Name:</strong> {{ service.name }}</p>
+        <p style="font-size: 20px; color: green;"><strong>Total Amount:</strong> ₹{{ amount }}</p> 
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn-primary" style="background-color: #28a745; font-size: 18px;">Pay Now (₹{{ amount }})</button>
+    </form>
+    
+    <a href="{% url 'user_dashboard' %}" style="display: block; text-align: center; margin-top: 15px; color: red;">Cancel</a>
+</div>
+{% endblock %}
