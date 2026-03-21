@@ -7,6 +7,10 @@
         <h2>EGARAGE OWNER DASHBOARD</h2>
         <p>Welcome Owner: <strong>{{ request.user.email }}</strong></p>
         <br>
+        <p><strong>Name:</strong> {{ request.user.first_name }} {{ request.user.last_name }}</p>
+        <p><strong>Mobile:</strong> {{ request.user.mobile }}</p>
+        <br>
+        <a href="{% url 'edit_profile' %}" style="background-color: #ffc107; color: black; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px;">Edit Profile</a>
         <div style="display: flex; gap: 20px; align-items: center;">
             <a href="{% url 'create_parking' %}" style="background-color: blue; color: white; text-decoration: none; padding: 10px 15px; border-radius: 5px; font-weight: bold;">+ Add New Garage Service</a>
             <a href="{% url 'logout' %}" style="color: red; font-weight: bold; text-decoration: none;">Logout</a>
@@ -16,6 +20,14 @@
     <hr>
     
     <h3>My Garage Services</h3>
+    <form method="GET" style="margin-bottom: 20px; display: flex; gap: 10px; max-width: 400px;">
+        <input type="text" name="q" placeholder="Search services (e.g., Car Wash)..." value="{{ request.GET.q }}" style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+        <button type="submit" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Search</button>
+        
+        {% if request.GET.q %}
+            <a href="?" style="background-color: #6c757d; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px;">Clear</a>
+        {% endif %}
+    </form>
     <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 15px;">
         {% for parking in parkings %}
             <div style="border: 1px solid #ccc; padding: 15px; width: 250px; border-radius: 8px; background-color: white;">

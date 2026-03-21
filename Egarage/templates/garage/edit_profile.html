@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="form-container" style="max-width: 500px; margin: auto; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-top: 40px;">
+    <h2 style="text-align: center; color: #333;">Edit My Profile</h2>
+    <hr style="margin-bottom: 20px;">
+    
+    <form method="POST">
+        {% csrf_token %}
+        <p>
+            <label style="font-weight: bold;">First Name:</label><br>
+            <input type="text" name="first_name" value="{{ user.first_name }}" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;">
+        </p>
+        <p>
+            <label style="font-weight: bold;">Last Name:</label><br>
+            <input type="text" name="last_name" value="{{ user.last_name }}" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;">
+        </p>
+        <p>
+            <label style="font-weight: bold;">Mobile Number:</label><br>
+            <input type="text" name="mobile" value="{{ user.mobile }}" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;">
+        </p>
+        
+        <button type="submit" style="background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 15px;">Save Profile</button>
+    </form>
+    
+    <div style="text-align: center; margin-top: 15px;">
+        <a href="javascript:history.back()" style="color: red; text-decoration: none;">Cancel</a>
+    </div>
+</div>
+{% endblock %}

@@ -7,5 +7,6 @@ urlpatterns = [
     path("createparking/",views.createParking,name="create_parking"),
     path('user/book-service/<int:id>/', views.bookService, name='book_service'),
     path('owner/update-service/<int:id>/', views.updateParking, name='update_parking'),
-    path('owner/delete-service/<int:id>/', views.deleteParking, name='delete_parking')
+    path('owner/delete-service/<int:id>/', views.deleteParking, name='delete_parking'),
+    path('edit-profile/', views.editProfile, name='edit_profile')
 ]

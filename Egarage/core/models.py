@@ -32,6 +32,9 @@ class User(AbstractBaseUser):
         return self.is_admin
         
     email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=50, blank=True, null=True)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
+    mobile = models.CharField(max_length=15, blank=True, null=True)
     role_choice =(
         ('owner','owner'),
         ('user','user'),
