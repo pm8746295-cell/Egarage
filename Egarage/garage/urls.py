@@ -8,5 +8,7 @@ urlpatterns = [
     path('user/book-service/<int:id>/', views.bookService, name='book_service'),
     path('owner/update-service/<int:id>/', views.updateParking, name='update_parking'),
     path('owner/delete-service/<int:id>/', views.deleteParking, name='delete_parking'),
-    path('edit-profile/', views.editProfile, name='edit_profile')
+    path('edit-profile/', views.editProfile, name='edit_profile'),
+    path('user/cancel-booking/<int:id>/', views.cancelBooking, name='cancel_booking'),
+    path('user/invoice/<int:id>/', views.generateInvoice, name='generate_invoice')
 ]

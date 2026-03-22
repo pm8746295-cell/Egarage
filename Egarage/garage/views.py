@@ -5,20 +5,31 @@ from .forms import ParkingSlotCreationForm
 from .models import ParkingSlot  # <--- NAYI LINE: Database table import kiya
 from django.contrib.auth import get_user_model
 User = get_user_model()
+from django.core.mail import send_mail
+from django.conf import settings
 
 # Create your views here.
-#@login_required(login_url="login") #check in core.urls.py login name should exist..
-@role_required(allowed_roles=["owner"]) #check in core.urls.py login name should exist..
+@login_required(login_url="login")
+@role_required(allowed_roles=["owner"])
 def ownerDashboardView(request):
-    query = request.GET.get('q') # URL se search word uthaya
+    query = request.GET.get('q') 
     if query:
-        # Agar kuch search kiya hai, toh sirf matching naam wale dikhao (icontains = case insensitive search)
         parkings = ParkingSlot.objects.filter(name__icontains=query)
     else:
-        # Warna saari services dikhao
+        parkings = ParkingSlot.objects.all()
     
-         parkings = ParkingSlot.objects.all()  # <--- NAYI LINE: Database se saari parking details uthayi
-    return render(request, "garage/owner/owner_dashboard.html", {"parkings": parkings}) # <--- NAYI LINE: HTML ko data bheja
+    # --- YAHAN SE NAYA LOGIC SHURU HOTA HAI ---
+    total_services = ParkingSlot.objects.count() 
+    active_bookings = ParkingSlot.objects.filter(is_booked=True).count() 
+    total_earnings = active_bookings * 499 
+    
+    context = {
+        "parkings": parkings,
+        "total_services": total_services,
+        "active_bookings": active_bookings,
+        "total_earnings": total_earnings
+    }
+    return render(request, "garage/owner/owner_dashboard.html", context)
 
 #@login_required(login_url="login")
 @role_required(allowed_roles=["user"]) #check in core.urls.py login name should exist.. 
@@ -49,20 +60,26 @@ def createParking(request):
 @login_required(login_url="login")
 @role_required(allowed_roles=["user"])
 def bookService(request, id):
-    # 1. Wo specific service database se nikali jise user book karna chahta hai
     service = ParkingSlot.objects.get(id=id)
-    
-    # 2. Egarage ka service charge (amount)
     amount = 499 
     
-    # 3. Jab user 'Pay Now' dabayega (POST request)
     if request.method == "POST":
-        service.is_booked = True # Service ko booked mark kar diya
-        service.booked_by = request.user
-        service.save()           # Database me save kar diya
-        return redirect("user_dashboard") # Wapas dashboard par bhej diya
+        service.is_booked = True 
+        service.booked_by = request.user  
+        service.save()           
         
-    # 4. Normal page load hone par booking.html dikhana
+        
+        try:
+            subject = f"Egarage - Booking Confirmed: {service.name}"
+            # Message mein humne aapka naam bhi daal diya as developer! 😎
+            message = f"Hello {request.user.first_name},\n\nYour booking for '{service.name}' has been confirmed successfully.\nAmount to be paid at garage: ₹499.\n\nThank you for choosing Egarage!\n- Developed by Mihir Patel"
+            send_mail(subject, message, settings.EMAIL_HOST_USER, [request.user.email], fail_silently=True)
+        except Exception as e:
+            print("Email nahi gaya, Error:", e)
+        
+
+        return redirect("user_dashboard") 
+        
     return render(request, "garage/user/booking.html", {"service": service, "amount": amount})
 
 # --- UPDATE (Edit) SERVICE ---
@@ -110,4 +127,32 @@ def editProfile(request):
             return redirect("user_dashboard")
             
     return render(request, "garage/edit_profile.html", {"user": request.user})
+
+# --- NAYA LEVEL 2 LOGIC: CANCEL BOOKING ---
+@login_required(login_url="login")
+@role_required(allowed_roles=["user"])
+def cancelBooking(request, id):
+    service = ParkingSlot.objects.get(id=id)
+    
+    # Security Check: Sirf wahi user cancel kar paye jisne book kiya hai
+    if service.booked_by == request.user:
+        service.is_booked = False  # Wapas available kar diya
+        service.booked_by = None   # User ka naam hata diya
+        service.save()
+        
+    return redirect("user_dashboard")
+
+# --- NAYA LEVEL 3 LOGIC: INVOICE GENERATOR ---
+@login_required(login_url="login")
+@role_required(allowed_roles=["user"])
+def generateInvoice(request, id):
+    # Jis service ka bill chahiye, use uthao
+    service = ParkingSlot.objects.get(id=id)
+    
+    # Ek basic security check (Sirf wahi user apna bill dekh paye jisne book kiya hai)
+    if service.booked_by != request.user:
+        return redirect("user_dashboard")
+        
+    return render(request, "garage/user/invoice.html", {"service": service, "user": request.user})
+
 

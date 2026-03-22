@@ -7,8 +7,20 @@
         <h2>EGARAGE OWNER DASHBOARD</h2>
         <p>Welcome Owner: <strong>{{ request.user.email }}</strong></p>
         <br>
-        <p><strong>Name:</strong> {{ request.user.first_name }} {{ request.user.last_name }}</p>
-        <p><strong>Mobile:</strong> {{ request.user.mobile }}</p>
+        <p style="font-size: 18px;"><strong>Name:</strong> 
+            {% if request.user.first_name %}
+                {{ request.user.first_name }} {{ request.user.last_name }}
+            {% else %}
+                <span style="color: gray; font-style: italic;">Not Provided</span>
+            {% endif %}
+        </p>
+        <p style="font-size: 18px;"><strong>Mobile:</strong> 
+            {% if request.user.mobile %}
+                {{ request.user.mobile }}
+            {% else %}
+                <span style="color: gray; font-style: italic;">Not Provided</span>
+            {% endif %}
+        </p>
         <br>
         <a href="{% url 'edit_profile' %}" style="background-color: #ffc107; color: black; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px;">Edit Profile</a>
         <div style="display: flex; gap: 20px; align-items: center;">
@@ -18,6 +30,27 @@
     </div>
 
     <hr>
+    <h3 style="color: #333; margin-bottom: 15px;">📊 Analytics Overview</h3>
+    <div style="display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap;">
+        
+        <div style="background-color: #17a2b8; color: white; padding: 20px; border-radius: 8px; flex: 1; min-width: 200px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
+            <h4 style="margin: 0; font-size: 18px;">Total Services</h4>
+            <h1 style="margin: 10px 0 0 0; font-size: 36px;">{{ total_services }}</h1>
+        </div>
+
+        <div style="background-color: #28a745; color: white; padding: 20px; border-radius: 8px; flex: 1; min-width: 200px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
+            <h4 style="margin: 0; font-size: 18px;">Active Bookings</h4>
+            <h1 style="margin: 10px 0 0 0; font-size: 36px;">{{ active_bookings }}</h1>
+        </div>
+
+        <div style="background-color: #ffc107; color: black; padding: 20px; border-radius: 8px; flex: 1; min-width: 200px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
+            <h4 style="margin: 0; font-size: 18px;">Estimated Earnings</h4>
+            <h1 style="margin: 10px 0 0 0; font-size: 36px;">₹{{ total_earnings }}</h1>
+        </div>
+        
+    </div>
+    <hr>
+   
     
     <h3>My Garage Services</h3>
     <form method="GET" style="margin-bottom: 20px; display: flex; gap: 10px; max-width: 400px;">
