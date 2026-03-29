@@ -12,23 +12,32 @@ from django.conf import settings
 @login_required(login_url="login")
 @role_required(allowed_roles=["owner"])
 def ownerDashboardView(request):
-    query = request.GET.get('q') 
+    query = request.GET.get('q')
     if query:
         parkings = ParkingSlot.objects.filter(name__icontains=query)
     else:
         parkings = ParkingSlot.objects.all()
+
+    # --- NAYA PRO LOGIC FOR ANALYTICS ---
+    total_services = ParkingSlot.objects.count()
     
-    # --- YAHAN SE NAYA LOGIC SHURU HOTA HAI ---
-    total_services = ParkingSlot.objects.count() 
-    active_bookings = ParkingSlot.objects.filter(is_booked=True).count() 
-    total_earnings = active_bookings * 499 
+    # 1. Jo gaadiyan abhi garage mein hain (Pending/Approved)
+    active_bookings = ParkingSlot.objects.filter(is_booked=True).count()
     
+    # 2. Jo gaadiyan service ho chuki hain (Completed)
+    completed_bookings = ParkingSlot.objects.filter(status='Completed').count()
+    
+    # 3. Total Earnings = (Active gaadiyan + Complete ho chuki gaadiyan) * 499
+    # Ab paise kabhi kam nahi honge!
+    total_earnings = (active_bookings + completed_bookings) * 499
+
     context = {
         "parkings": parkings,
         "total_services": total_services,
         "active_bookings": active_bookings,
         "total_earnings": total_earnings
     }
+    
     return render(request, "garage/owner/owner_dashboard.html", context)
 
 #@login_required(login_url="login")
@@ -65,7 +74,8 @@ def bookService(request, id):
     
     if request.method == "POST":
         service.is_booked = True 
-        service.booked_by = request.user  
+        service.booked_by = request.user
+        service.status = 'pending'  
         service.save()           
         
         
@@ -154,5 +164,33 @@ def generateInvoice(request, id):
         return redirect("user_dashboard")
         
     return render(request, "garage/user/invoice.html", {"service": service, "user": request.user})
+
+
+@login_required(login_url="login")
+@role_required(allowed_roles=["owner"])
+def approveBooking(request, id):
+    booking = ParkingSlot.objects.get(id=id)
+    booking.status = 'approved'
+    booking.save()
+    return redirect("owner_dashboard")
+
+@login_required(login_url="login")
+@role_required(allowed_roles=["owner"])
+def rejectBooking(request, id):
+    booking = ParkingSlot.objects.get(id=id)
+    booking.status = 'pending'
+    booking.is_booked = False
+    booking.booked_by = None
+    booking.save()
+    return redirect("owner_dashboard")
+
+@login_required(login_url="login")
+@role_required(allowed_roles=["owner"])
+def completeBooking(request, id):
+    booking = ParkingSlot.objects.get(id=id)
+    booking.status = 'Completed'
+    booking.is_booked = False  # Isse service wapas dusre logo ke liye Available ho jayegi
+    booking.save()
+    return redirect("owner_dashboard")
 
 

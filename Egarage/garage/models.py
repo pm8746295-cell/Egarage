@@ -15,3 +15,11 @@ class ParkingSlot(models.Model):
     def __str__(self):
         return self.name
     
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Completed', 'Completed'),
+        ('Cancelled', 'Cancelled'),
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    

@@ -68,13 +68,45 @@
                 {% if parking.parkingImage %}
                     <img src="{{ parking.parkingImage.url }}" alt="Service Image" style="width: 100%; height: 150px; object-fit: cover; border-radius: 5px;">
                 {% endif %}
-                <p style="margin-top: 10px;">Status: 
-                    {% if parking.is_booked %} 
-                        <span style="color:red; font-weight: bold;">Currently Unavailable</span> 
-                    {% else %} 
-                        <span style="color:green; font-weight: bold;">Available</span> 
+               <p style="margin-top: 10px;"><strong>Status:</strong>
+                    {% if parking.is_booked %}
+                        {% if parking.status|lower == 'pending' %}
+                            <span style="color: orange; font-weight: bold;">Pending</span>
+                            
+                        {% elif parking.status|lower == 'approved' %}
+                            <span style="color: green; font-weight: bold;">Approved</span>
+                            
+                            <div style="margin-top: 10px;">
+                                <a href="{% url 'complete_booking' parking.id %}" style="background-color: #007bff; color: white; padding: 6px 12px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 13px; display: inline-block;">☑️ Mark Completed</a>
+                            </div>
+                            
+                        {% else %}
+                            <span style="color: red; font-weight: bold;">{{ parking.status }}</span>
+                        {% endif %}
+
+                        {% if parking.booked_by %}
+                            <br>
+                            <span style="font-size: 14px; color: #555;">
+                                <strong>Booked By:</strong> 
+                                {% if parking.booked_by.first_name %}
+                                    {{ parking.booked_by.first_name }}
+                                {% else %}
+                                    {{ parking.booked_by.email }}
+                                {% endif %}
+                            </span>
+                        {% endif %}
+
+                        {% if parking.status|lower == 'pending' %}
+                            <div style="margin-top: 10px; display: flex; gap: 10px;">
+                                <a href="{% url 'approve_booking' parking.id %}" style="background-color: #28a745; color: white; padding: 5px 10px; text-decoration: none; border-radius: 5px;">✅ Approve</a>
+                                <a href="{% url 'reject_booking' parking.id %}" style="background-color: #dc3545; color: white; padding: 5px 10px; text-decoration: none; border-radius: 5px;">❌ Reject</a>
+                            </div>
+                        {% endif %}
+                        
+                    {% else %}
+                        <span style="color: green; font-weight: bold;">Available</span>
                     {% endif %}
-                </p>
+                </p> 
                 <div style="margin-top: 15px; display: flex; gap: 10px;">
                     <a href="{% url 'update_parking' parking.id %}" style="background-color: #ffc107; color: black; padding: 8px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 14px;">Edit Service</a>
                     
