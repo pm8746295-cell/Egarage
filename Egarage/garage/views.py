@@ -38,7 +38,7 @@ def ownerDashboardView(request):
         "total_earnings": total_earnings
     }
     
-    return render(request, "garage/owner/owner_dashboard.html", context)
+    return render(request, "garage/owner/owner_dashboard.html", context)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 
 #@login_required(login_url="login")
 @role_required(allowed_roles=["user"]) #check in core.urls.py login name should exist.. 
@@ -138,18 +138,17 @@ def editProfile(request):
             
     return render(request, "garage/edit_profile.html", {"user": request.user})
 
-# --- NAYA LEVEL 2 LOGIC: CANCEL BOOKING ---
 @login_required(login_url="login")
 @role_required(allowed_roles=["user"])
 def cancelBooking(request, id):
     service = ParkingSlot.objects.get(id=id)
-    
-    # Security Check: Sirf wahi user cancel kar paye jisne book kiya hai
+
     if service.booked_by == request.user:
-        service.is_booked = False  # Wapas available kar diya
-        service.booked_by = None   # User ka naam hata diya
+        service.is_booked = False
+        service.booked_by = None
+        service.status = 'pending'
         service.save()
-        
+
     return redirect("user_dashboard")
 
 # --- NAYA LEVEL 3 LOGIC: INVOICE GENERATOR ---
@@ -188,8 +187,8 @@ def rejectBooking(request, id):
 @role_required(allowed_roles=["owner"])
 def completeBooking(request, id):
     booking = ParkingSlot.objects.get(id=id)
-    booking.status = 'Completed'
-    booking.is_booked = False  # Isse service wapas dusre logo ke liye Available ho jayegi
+    booking.status = 'completed'
+    booking.is_booked = False
     booking.save()
     return redirect("owner_dashboard")
 
