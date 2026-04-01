@@ -1,140 +1,269 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div style="padding: 20px;">
+<style>
+    /* --- Egarage Premium Dashboard CSS (Conflict-Free) --- */
+    .eg-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* 1. Profile Section */
+    .eg-profile {
+        background: #fff;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: 1px solid #eaeaea;
+        max-width: 500px;
+        margin: 0 auto 50px auto;
+    }
+
+    .eg-profile h2 {
+        text-align: center;
+        color: #1a237e;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 15px;
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+
+    .eg-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px dashed #eee;
+    }
+    .eg-row:last-child { border-bottom: none; }
     
-    <div class="form-container" style="margin-bottom: 40px;">
-        <h2 style="text-align: center;">USER DASHBOARD</h2>
-        <hr>
-        <p style="font-size: 18px;"><strong>Role:</strong> {{ request.user.role }}</p>
-        <p style="font-size: 18px;"><strong>Email:</strong> {{ request.user.email }}</p>
-        <br>
-        <p style="font-size: 18px;"><strong>Name:</strong> 
-            {% if request.user.first_name %}
-                {{ request.user.first_name }} {{ request.user.last_name }}
-            {% else %}
-                <span style="color: gray; font-style: italic;">Not Provided</span>
-            {% endif %}
-        </p>
-        <p style="font-size: 18px;"><strong>Mobile:</strong> 
-            {% if request.user.mobile %}
-                {{ request.user.mobile }}
-            {% else %}
-                <span style="color: gray; font-style: italic;">Not Provided</span>
-            {% endif %}
-        </p>
-        <br>
-        
-        <a href="{% url 'edit_profile' %}" style="background-color: #ffc107; color: black; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px;">Edit Profile</a>
-        
-        
+    .eg-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 25px;
+    }
 
+    .eg-btn {
+        flex: 1;
+        text-align: center;
+        padding: 12px;
+        border-radius: 6px;
+        font-weight: bold;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        color: white;
+    }
+    .eg-btn-yellow { background: #ffc107; color: #000; }
+    .eg-btn-red { background: #dc3545; }
 
-        <a href="{% url 'logout' %}" class="btn-primary" style="background-color: red; text-align: center; text-decoration: none; display: block;">Logout</a>
+    /* 2. Table Section */
+    .eg-table-wrapper {
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: 1px solid #eaeaea;
+        margin-bottom: 50px;
+    }
+
+    .eg-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .eg-table th { background: #007bff; color: white; padding: 15px; text-align: left; }
+    .eg-table td { padding: 15px; border-bottom: 1px solid #eee; }
+    .eg-table tr:hover { background: #f9f9f9; }
+
+    .eg-badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+    .bg-pend { background: #fff3cd; color: #856404; }
+    .bg-appr { background: #d4edda; color: #155724; }
+    .bg-comp { background: #cce5ff; color: #004085; }
+    .bg-canc { background: #f8d7da; color: #721c24; }
+
+    /* 3. Services Grid & Search (THE MAIN FIX) */
+    .eg-search {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        max-width: 600px;
+        align-items: stretch; /* Ensures input and button are exactly same height */
+    }
+
+    .eg-search input {
+        flex-grow: 1;
+        padding: 12px 15px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 15px;
+    }
+
+    .eg-search button, .eg-search a {
+        padding: 0 25px;
+        border-radius: 6px;
+        font-weight: bold;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+
+    .eg-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+    }
+
+    .eg-card {
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #eaeaea;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+        display: flex;
+        flex-direction: column; /* This enables equal heights */
+        height: 100%; /* Force card to fill grid row */
+    }
+
+    .eg-card img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+    }
+
+    .eg-card-body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1; /* Pushes the button wrapper to the bottom */
+    }
+
+    .eg-card-body h4 { margin: 0 0 10px 0; font-size: 18px; color: #333; }
+    .eg-card-body p { margin: 0 0 20px 0; font-size: 14px; font-weight: bold; }
+
+    .eg-card-footer {
+        margin-top: auto; /* MAGIC: Always pushes button to the absolute bottom */
+    }
+
+    .eg-btn-book {
+        display: block;
+        width: 100%;
+        text-align: center;
+        background: #007bff;
+        color: white;
+        padding: 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: bold;
+        box-sizing: border-box;
+    }
+</style>
+
+<div class="eg-container">
+
+    <div class="eg-profile">
+        <h2>User Dashboard</h2>
+        <div class="eg-row">
+            <strong>Role:</strong> <span style="text-transform: capitalize;">{{ request.user.role }}</span>
+        </div>
+        <div class="eg-row">
+            <strong>Email:</strong> <span>{{ request.user.email }}</span>
+        </div>
+        <div class="eg-row">
+            <strong>Name:</strong> 
+            <span>{% if request.user.first_name %}{{ request.user.first_name }} {{ request.user.last_name }}{% else %}<i style="color:#aaa;">Not Provided</i>{% endif %}</span>
+        </div>
+        <div class="eg-row">
+            <strong>Mobile:</strong> 
+            <span>{% if request.user.mobile %}{{ request.user.mobile }}{% else %}<i style="color:#aaa;">Not Provided</i>{% endif %}</span>
+        </div>
+        <div class="eg-actions">
+            <a href="{% url 'edit_profile' %}" class="eg-btn eg-btn-yellow">✏️ Edit Profile</a>
+            <a href="{% url 'logout' %}" class="eg-btn eg-btn-red">Logout 🚪</a>
+        </div>
     </div>
-    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 30px;">
-        <h3 style="color: #333; margin-top: 0;">📋 My Booking History</h3>
-        
-        <table style="width: 100%; border-collapse: collapse; margin-top: 15px; background-color: white;">
-           <thead>
-                <tr style="background-color: #007bff; color: white; text-align: left;">
-                    <th style="padding: 10px; border: 1px solid #ddd;">Service Name</th>
-                    <th style="padding: 10px; border: 1px solid #ddd;">Amount Paid</th>
-                    <th style="padding: 10px; border: 1px solid #ddd;">Status</th>
-                    <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Action</th> </tr>
+
+    <h3 style="color:#2c3e50; margin-bottom: 15px;">📋 My Booking History</h3>
+    <div class="eg-table-wrapper">
+        <table class="eg-table">
+            <thead>
+                <tr>
+                    <th>Service Name</th>
+                    <th>Amount Paid</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
             </thead>
             <tbody>
-                 {% for history in my_history %}
+                {% for history in my_history %}
                 <tr>
-                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">
-                        {{ history.name }}
+                    <td><strong>{{ history.name }}</strong></td>
+                    <td>₹499</td>
+                    <td>
+                        {% if history.status|lower == 'pending' %}<span class="eg-badge bg-pend">Pending</span>
+                        {% elif history.status|lower == 'approved' %}<span class="eg-badge bg-appr">Approved</span>
+                        {% elif history.status|lower == 'completed' %}<span class="eg-badge bg-comp">Completed</span>
+                        {% elif history.status|lower == 'cancelled' %}<span class="eg-badge bg-canc">Cancelled</span>
+                        {% else %}<span class="eg-badge bg-pend">{{ history.status }}</span>{% endif %}
                     </td>
-                    
-                    <td style="padding: 10px; border: 1px solid #ddd;">₹499</td>
-                    
-                    <td style="padding: 10px; border: 1px solid #ddd;">
-                        {% if history.status|lower == 'pending' %}
-                            <span style="color: orange; font-weight: bold;">Pending</span>
-                            
-                        {% elif history.status|lower == 'approved' %}
-                            <span style="color: green; font-weight: bold;">Approved</span>
-                            
-                        {% elif history.status|lower == 'completed' %}
-                            <span style="color: blue; font-weight: bold;">Completed</span>
-                            
-                        {% elif history.status|lower == 'cancelled' %}
-                            <span style="color: red; font-weight: bold;">Cancelled</span>
-                            
-                        {% else %}
-                            <span style="color: gray; font-weight: bold;">Unknown ({{ history.status }})</span>
-                            
-                        {% endif %}
-                    </td>
-                    
-                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
-                        <a href="{% url 'generate_invoice' history.id %}"
-                        style="background-color: #ffc107; color: black; padding: 5px 10px; text-decoration: none; border-radius: 4px; font-weight: bold; margin-right: 5px;">
-                        Invoice
-                        </a>
-
-                        {% if history.status|lower == 'pending' or history.status|lower == 'approved' %}
-                            <a href="{% url 'cancel_booking' history.id %}"
-                            style="background-color: #dc3545; color: white; padding: 5px 10px; text-decoration: none; border-radius: 4px; font-weight: bold;">
-                            Cancel
-                            </a>
-                        {% else %}
-                            <span style="color: gray; font-weight: bold;">No Action</span>
-                        {% endif %}
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="{% url 'generate_invoice' history.id %}" class="eg-badge" style="background:#ffc107; color:#000; text-decoration:none;">Invoice</a>
+                            {% if history.status|lower == 'pending' or history.status|lower == 'approved' %}
+                                <a href="{% url 'cancel_booking' history.id %}" class="eg-badge" style="background:#dc3545; color:#fff; text-decoration:none;">Cancel</a>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
-                <tr>
-                    <td colspan="4" style="padding: 15px; text-align: center; border: 1px solid #ddd; color: #666;">
-                        You haven't booked any services yet.
-                    </td>
-                </tr>
+                <tr><td colspan="4" style="text-align: center; color: #888;">No booking history found.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <hr>
 
-    <h3>Available Garage Services</h3>
-    <form method="GET" style="margin-bottom: 20px; display: flex; gap: 10px; max-width: 400px;">
-        <input type="text" name="q" placeholder="Search services (e.g., Car Wash)..." value="{{ request.GET.q }}" style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
-        <button type="submit" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Search</button>
-        
+    <h3 style="color:#2c3e50; margin-bottom: 15px;">🛠️ Available Garage Services</h3>
+    
+    <form method="GET" class="eg-search">
+        <input type="text" name="q" placeholder="Search services (e.g., Car Wash)..." value="{{ request.GET.q }}">
+        <button type="submit" style="background: #28a745; color: white;">Search</button>
         {% if request.GET.q %}
-            <a href="?" style="background-color: #6c757d; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px;">Clear</a>
+            <a href="?" style="background: #6c757d; color: white;">Clear</a>
         {% endif %}
     </form>
     
-    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 15px;">
+    <div class="eg-grid">
         {% for service in services %}
-            <div style="border: 1px solid #ccc; padding: 15px; width: 250px; border-radius: 8px; background-color: white;">
-                <h4>{{ service.name }}</h4>
-                
+            <div class="eg-card">
                 {% if service.parkingImage %}
-                    <img src="{{ service.parkingImage.url }}" alt="Service Image" style="width: 100%; height: 150px; object-fit: cover; border-radius: 5px;">
+                    <img src="{{ service.parkingImage.url }}" alt="{{ service.name }}">
+                {% else %}
+                    <div style="height: 180px; background: #eee; display: flex; align-items: center; justify-content: center; color: #999;">No Image</div>
                 {% endif %}
                 
-                <p style="margin-top: 10px;">Status: 
-                    {% if service.is_booked %} 
-                        <span style="color:red; font-weight: bold;">Currently Unavailable</span> 
-                    {% else %} 
-                        <span style="color:green; font-weight: bold;">Available</span> 
-                    {% endif %}
-                </p>
+                <div class="eg-card-body">
+                    <h4>{{ service.name }}</h4>
+                    <p>Status: 
+                        {% if service.is_booked %} <span style="color:#dc3545;">Currently Unavailable</span> 
+                        {% else %} <span style="color:#28a745;">Available</span> {% endif %}
+                    </p>
 
-                {% if not service.is_booked %}
-                    <div style="margin-top: 15px;">
-                        <a href="{% url 'book_service' service.id %}" style="background-color: #007bff; color: white; padding: 10px; text-decoration: none; border-radius: 5px; display: block; text-align: center; font-weight: bold;">Book Now</a>
+                    <div class="eg-card-footer">
+                        {% if not service.is_booked %}
+                            <a href="{% url 'book_service' service.id %}" class="eg-btn-book">Book Now</a>
+                        {% else %}
+                            <div style="height: 40px;"></div>
+                        {% endif %}
                     </div>
-                {% endif %}
+                </div>
             </div>
         {% empty %}
-            <p>No services are currently available.</p>
+            <div style="grid-column: 1/-1; text-align: center; padding: 30px; border: 1px solid #ddd; border-radius: 8px;">No services are currently available.</div>
         {% endfor %}
     </div>
+
 </div>
 {% endblock %}
