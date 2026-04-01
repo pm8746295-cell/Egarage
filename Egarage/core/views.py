@@ -9,39 +9,41 @@ def userSignupView(request):
     if request.method == "POST":
         form = UserSignupForm(request.POST or None)
         if form.is_valid():
-            # STEP 1: Pehle user ko save karo taaki uski details mil sakein
+            # STEP 1: Save User
             user = form.save()
             
-            # STEP 2: Professional Email Bhejne ka Logic
+            # STEP 2: Professional Dynamic Email Logic
             try:
-                # User ka naam nikalo (agar naam nahi diya toh email use karo)
                 user_name = user.first_name if user.first_name else user.email
                 user_role = user.role if hasattr(user, 'role') else "Customer"
                 
-                # Professional Subject
+                # Yeh line MAGIC karegi! (Dynamic Domain)
+                # Agar localhost pe ho toh '127.0.0.1:8000' nikalega, aur live pe ho toh 'www.egarage.com'
+                domain = request.get_host() 
+                protocol = 'https' if request.is_secure() else 'http'
+                login_link = f"{protocol}://{domain}/core/login/"
+
                 subject = "Welcome to Egarage – Your Account is Ready! 🚗✨"
                 
-                # Professional Message Body (f-string ka use karke)
-                message = f"""Hi {user_name},
+                # Naya "Pro Email" Format (Jaisa aapne suggest kiya)
+                message = f"""Hello {user_name},
 
-Welcome to Egarage! We are excited to have you on board.
+🎉 Welcome to Egarage!
 
-Your account has been created successfully. Here are your account details:
+Your account has been successfully created and you are now part of our community.
 
-- Role: {user_role.capitalize()}
-- Account Status: Active
+🔹 Role: {user_role.capitalize()}
+🔹 Status: Active
 
-You can now log in to your dashboard to explore our services, book appointments, or manage your garage listings.
+👉 Login to your dashboard and start using our services:
+{login_link}
 
-Login Here: http://127.0.0.1:8000/core/login/
+If you have any questions, feel free to reply to this email.
 
-If you have any questions or need assistance, feel free to reply to this email.
-
-Best Regards,
+Thank you,
 Team Egarage
 (Managed by Mihir Patel)
 """
-                # Mail bhejne ki final command
                 send_mail(
                     subject=subject,
                     message=message,
@@ -52,14 +54,12 @@ Team Egarage
             except Exception as e:
                 print("Email nahi gaya, Error:", e)
 
-            # STEP 3: Mail bhejne ke baad user ko login page par bhej do
+            # STEP 3: Redirect
             return redirect('login')
             
         else:
-            # Agar form mein koi error ho
             return render(request, 'core/signup.html', {'form': form})  
     else:
-        # Jab user pehli baar signup page khole
         form = UserSignupForm()
         return render(request, 'core/signup.html', {'form': form})
 

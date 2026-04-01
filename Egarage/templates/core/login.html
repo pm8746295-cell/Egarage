@@ -1,12 +1,163 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="form-container">
-    <h2>Login to Garage</h2>
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn-primary">Login</button>
-    </form>
+<style>
+    /* --- Egarage Premium Login UI --- */
+    .login-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        /* Ekdum mast subtle background gradient */
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
+        padding: 20px;
+    }
+
+    .login-card {
+        background: white;
+        padding: 40px 35px;
+        border-radius: 12px; /* Smooth corners */
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Professional 3D shadow */
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+    }
+
+    .login-header {
+        margin-bottom: 30px;
+    }
+
+    .login-header h2 {
+        margin: 0;
+        color: #333;
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .login-header p {
+        color: #666;
+        font-size: 14px;
+        margin-top: 8px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #444;
+        font-size: 14px;
+    }
+
+    /* Django ke default inputs ko style karna */
+    .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+        background-color: #fdfdfd;
+    }
+
+    .form-group input:focus {
+        border-color: #007bff;
+        outline: none;
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15); /* Glowing focus effect */
+    }
+
+    .login-btn {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 14px;
+        width: 100%;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.1s;
+        margin-top: 10px;
+    }
+
+    .login-btn:hover {
+        background-color: #0056b3;
+    }
+
+    .login-btn:active {
+        transform: scale(0.98); /* Click karne par halka sa dabega */
+    }
+
+    .signup-link {
+        margin-top: 25px;
+        font-size: 14px;
+        color: #555;
+    }
+
+    .signup-link a {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+        transition: color 0.3s;
+    }
+
+    .signup-link a:hover {
+        color: #0056b3;
+        text-decoration: underline;
+    }
+
+    .error-msg {
+        color: #dc3545;
+        background-color: #f8d7da;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        border: 1px solid #f5c6cb;
+    }
+</style>
+
+<div class="login-wrapper">
+    <div class="login-card">
+        
+        <div class="login-header">
+            <h2>🚗 Egarage</h2>
+            <p>Welcome back! Please enter your details.</p>
+        </div>
+
+        {% if form.errors %}
+            <div class="error-msg">
+                Invalid Email or Password. Try again!
+            </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label>Email Address</label>
+                {{ form.email }}
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                {{ form.password }}
+            </div>
+            
+            <button type="submit" class="login-btn">Login Securely</button>
+        </form>
+
+        <div class="signup-link">
+            Don't have a garage account? <a href="{% url 'signup' %}">Create one</a>
+        </div>
+        
+    </div>
 </div>
 {% endblock %}
