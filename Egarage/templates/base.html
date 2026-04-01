@@ -4,23 +4,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}"> 
+    <title>Egarage System</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body>
-    {% comment %} //check rol for navbar... {% endcomment %}
-    {% if request.user.role == 'owner' %}
-        {% include 'garage/owner/ownersiderbar.html' %}
-    {% elif request.user.role == 'user' %}
-        {% include 'garage/user/usernavbar.html' %}
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f7f6; display: flex; flex-direction: column; min-height: 100vh;">
+
+    {% if user.is_authenticated and 'login' not in request.path and 'signup' not in request.path %}
+        {% if request.user.role == 'owner' %}
+            {% include 'garage/owner/ownersiderbar.html' %}
+        {% elif request.user.role == 'user' %}
+            {% include 'garage/user/usernavbar.html' %}
+        {% endif %}
     {% endif %}
-    {% block content %}
-    {% endblock %}
+
+    <div style="flex: 1;">
+        {% block content %}
+        {% endblock %}
+    </div>
 
     <footer style="background-color: #333; color: white; text-align: center; padding: 20px 0; margin-top: 50px; width: 100%; border-top: 3px solid #007bff;">
         <p style="margin: 0; font-size: 15px;">&copy; 2026 <strong>Egarage System</strong> | All Rights Reserved.</p>
         <p style="margin: 5px 0 0 0; font-size: 14px; color: #ffc107;">Developed with ❤️ by Mihir Patel</p>
     </footer>
-    
+
 </body>
 </html>

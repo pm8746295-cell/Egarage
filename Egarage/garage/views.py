@@ -40,7 +40,7 @@ def ownerDashboardView(request):
     
     return render(request, "garage/owner/owner_dashboard.html", context)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 
-#@login_required(login_url="login")
+@login_required(login_url="login")
 @role_required(allowed_roles=["user"]) #check in core.urls.py login name should exist.. 
 def userDashboardView(request):
     query = request.GET.get('q') # User dashboard ke liye bhi same search
