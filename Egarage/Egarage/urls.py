@@ -19,12 +19,12 @@ from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect 
+from core import views as core_views
 
-def redirect_to_login(request):
-    return redirect('login')
+
 
 urlpatterns = [
-    path('', redirect_to_login, name='root_redirect'),
+    path('', core_views.homeView, name='home'),
     path('admin/', admin.site.urls),
     path("core/",include('core.urls')),
     path('garage/', include('garage.urls')), 

@@ -88,3 +88,14 @@ def userLoginView(request):
 def userLogoutView(request):
     logout(request) # Ye user ko system se bahar nikal dega
     return redirect('login') # Logout hone ke baad wapas login page par bhej dega  
+
+def homeView(request):
+    # Agar user pehle se login hai, toh usko direct uske dashboard par bhej do
+    if request.user.is_authenticated:
+        if getattr(request.user, 'role', '') == 'owner':
+            return redirect('owner_dashboard')
+        else:
+            return redirect('user_dashboard')
+            
+    # Agar login nahi hai, toh Premium Landing Page dikhao
+    return render(request, 'core/home.html')

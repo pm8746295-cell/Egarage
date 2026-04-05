@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        color: white;
+        padding: 100px 20px;
+        text-align: center;
+        min-height: 70vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-title {
+        font-size: 56px;
+        font-weight: 900;
+        margin-bottom: 20px;
+        letter-spacing: 1px;
+    }
+    
+    .text-highlight { color: #ffc107; }
+
+    .hero-subtitle {
+        font-size: 22px;
+        font-weight: 300;
+        margin-bottom: 40px;
+        color: #e1e5eb;
+        max-width: 800px;
+        line-height: 1.6;
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+    }
+
+    .btn-hero {
+        padding: 15px 40px;
+        border-radius: 30px;
+        font-size: 18px;
+        font-weight: bold;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .btn-primary-hero {
+        background-color: #007bff;
+        color: white;
+    }
+    .btn-primary-hero:hover {
+        background-color: #0056b3;
+        transform: translateY(-3px);
+    }
+
+    .btn-outline-hero {
+        background-color: transparent;
+        color: white;
+        border: 2px solid white;
+    }
+    .btn-outline-hero:hover {
+        background-color: white;
+        color: #0f2027;
+        transform: translateY(-3px);
+    }
+
+    .features-section {
+        padding: 80px 20px;
+        background-color: #f8f9fa;
+        text-align: center;
+    }
+
+    .features-title {
+        color: #2c3e50;
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 50px;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 40px 20px;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: transform 0.3s;
+    }
+    .feature-card:hover { transform: translateY(-5px); }
+    
+    .feature-icon { font-size: 50px; margin-bottom: 20px; }
+    .feature-card h3 { color: #333; margin-bottom: 15px; }
+    .feature-card p { color: #666; font-size: 15px; line-height: 1.5; }
+</style>
+
+<div class="hero-section">
+    <h1 class="hero-title">Welcome to <span class="text-highlight">Egarage</span></h1>
+    <p class="hero-subtitle">Find nearby garage services, book appointments online, and manage vehicle repairs seamlessly.</p>
+    
+    <div class="hero-buttons">
+        <a href="{% url 'login' %}" class="btn-hero btn-primary-hero">Login to Account</a>
+        <a href="{% url 'signup' %}" class="btn-hero btn-outline-hero">Create New Account</a>
+    </div>
+</div>
+
+<div class="features-section">
+    <h2 class="features-title">Why Choose Egarage?</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🔍</div>
+            <h3>Find Top Garages</h3>
+            <p>Search and discover the best-rated garages and service centers in your local area with just a few clicks.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📅</div>
+            <h3>Easy Online Booking</h3>
+            <p>Skip the long queues. Book your preferred time slot online for car wash, wheel alignment, or full service.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🏢</div>
+            <h3>For Garage Owners</h3>
+            <p>Register your garage, showcase your services, and manage customer bookings easily through our partner portal.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
