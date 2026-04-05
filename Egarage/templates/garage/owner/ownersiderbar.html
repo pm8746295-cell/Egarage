@@ -1,15 +1,78 @@
-<nav style="background: linear-gradient(135deg, #1a237e, #283593, #3f51b5); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 30px;">
-    
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <span style="font-size: 24px; color: #fff;">🏢</span>
-        <h2 style="margin: 0; color: white; font-size: 20px; font-weight: 700; letter-spacing: 1px;">Egarage Owner Portal</h2>
-    </div>
+<style>
+    .owner-premium-nav {
+        background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+        padding: 15px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-    <div style="display: flex; align-items: center; gap: 20px;">
-        <span style="color: #e1e5eb; font-size: 14px; font-weight: 500;">Welcome, {{ request.user.first_name|default:"Owner" }}</span>
-        <a href="{% url 'logout' %}" style="background-color: #ff4757; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; transition: background 0.3s; display: inline-block;">
-            Logout 🚪
-        </a>
-    </div>
+    .nav-brand-owner {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        gap: 10px;
+    }
 
+    .nav-logo-owner {
+        font-size: 22px;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: 1px;
+        margin: 0;
+    }
+
+    .nav-links-owner {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+    }
+
+    .nav-item-owner {
+        color: #e2e8f0;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 15px;
+        transition: color 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .nav-item-owner:hover { color: #64b5f6; }
+
+    .nav-btn-logout-owner {
+        background-color: rgba(255, 71, 87, 0.1);
+        color: #ff4757 !important;
+        border: 1px solid #ff4757;
+        padding: 8px 20px;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .nav-btn-logout-owner:hover {
+        background-color: #ff4757;
+        color: #ffffff !important;
+        transform: translateY(-2px);
+    }
+</style>
+
+<nav class="owner-premium-nav">
+    <a href="{% url 'owner_dashboard' %}" class="nav-brand-owner">
+        <span style="font-size: 24px;">🏢</span>
+        <h2 class="nav-logo-owner">Egarage Partner</h2>
+    </a>
+
+    <div class="nav-links-owner">
+        <a href="{% url 'owner_dashboard' %}" class="nav-item-owner">📊 Dashboard</a>
+        <a href="{% url 'edit_profile' %}" class="nav-item-owner">👤 Profile</a>
+        <a href="{% url 'owner_dashboard' %}" class="nav-item-owner">🛠️ Bookings/Services</a>
+        
+        <a href="{% url 'logout' %}" class="nav-item-owner nav-btn-logout-owner">Logout 🚪</a>
+    </div>
 </nav>

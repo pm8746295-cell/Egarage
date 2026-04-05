@@ -1,15 +1,78 @@
-<nav style="background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 30px;">
-    
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <span style="font-size: 24px; color: #fff;">🚗</span>
-        <h2 style="margin: 0; color: white; font-size: 20px; font-weight: 700; letter-spacing: 1px;">Egarage Dashboard</h2>
-    </div>
+<style>
+    .user-premium-nav {
+        background: #ffffff;
+        padding: 15px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        border-bottom: 2px solid #f0f2f5;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-    <div style="display: flex; align-items: center; gap: 20px;">
-        <span style="color: #e1e5eb; font-size: 14px; font-weight: 500;">Welcome, {{ request.user.first_name|default:request.user.email }}</span>
-        <a href="{% url 'logout' %}" style="background-color: #ff4757; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; transition: background 0.3s, transform 0.2s; display: inline-block;">
-            Logout 🚪
-        </a>
-    </div>
+    .nav-brand-user {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        gap: 10px;
+    }
 
+    .nav-logo-text {
+        font-size: 24px;
+        font-weight: 800;
+        color: #007bff;
+        letter-spacing: 0.5px;
+        margin: 0;
+    }
+
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+    }
+
+    .nav-item {
+        color: #4a5568;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 15px;
+        transition: color 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .nav-item:hover { color: #007bff; }
+
+    .nav-btn-logout {
+        background-color: #ffe5e5;
+        color: #dc3545 !important;
+        padding: 8px 20px;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .nav-btn-logout:hover {
+        background-color: #dc3545;
+        color: #ffffff !important;
+        transform: translateY(-2px);
+    }
+</style>
+
+<nav class="user-premium-nav">
+    <a href="{% url 'user_dashboard' %}" class="nav-brand-user">
+        <span style="font-size: 24px;">🚗</span>
+        <h2 class="nav-logo-text">Egarage</h2>
+    </a>
+
+    <div class="nav-links">
+        <a href="{% url 'user_dashboard' %}" class="nav-item">🏠 Dashboard</a>
+        <a href="{% url 'edit_profile' %}" class="nav-item">👤 Profile</a>
+        <a href="{% url 'user_dashboard' %}" class="nav-item">📅 Bookings</a> 
+        
+        <a href="{% url 'logout' %}" class="nav-item nav-btn-logout">Logout 🚪</a>
+    </div>
 </nav>
