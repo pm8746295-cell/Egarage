@@ -1,59 +1,147 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div style="max-width: 600px; margin: 40px auto; padding: 30px; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background-color: white; font-family: Arial, sans-serif;">
+<style>
+    .invoice-box {
+        max-width: 750px;
+        margin: 40px auto;
+        padding: 40px;
+        border: 1px solid #e5e5e5;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        background-color: white;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #333;
+    }
     
-    <div style="text-align: center; border-bottom: 2px solid #007bff; padding-bottom: 20px; margin-bottom: 20px;">
-        <h1 style="color: #007bff; margin: 0;">EGARAGE</h1>
-        <p style="margin: 5px 0 0 0; color: #555;">Official Booking Invoice</p>
+    .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+
+    .invoice-logo h1 { margin: 0; color: #007bff; font-size: 32px; font-weight: 800; letter-spacing: 1px; }
+    .invoice-logo p { margin: 5px 0 0 0; color: #777; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;}
+
+    .invoice-meta { text-align: right; }
+    .invoice-meta p { margin: 5px 0; font-size: 15px; }
+    .invoice-number { font-size: 18px; font-weight: bold; color: #222; }
+    
+    .invoice-body { display: flex; justify-content: space-between; margin-bottom: 40px; }
+    .bill-to h4, .service-info h4 { margin: 0 0 12px 0; color: #555; text-transform: uppercase; font-size: 13px; letter-spacing: 1px; }
+    .bill-to p, .service-info p { margin: 5px 0; font-size: 15px; color: #444; }
+
+    .status-badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; margin-top: 5px;}
+
+    .invoice-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+    .invoice-table th { background-color: #f8f9fa; padding: 15px; border-bottom: 2px solid #ddd; text-align: left; color: #444; font-weight: bold; text-transform: uppercase; font-size: 14px;}
+    .invoice-table td { padding: 15px; border-bottom: 1px solid #eee; color: #555; font-size: 15px;}
+    .invoice-table th.right, .invoice-table td.right { text-align: right; }
+    
+    .total-row td { font-weight: bold; font-size: 18px; color: #222; border-bottom: 2px solid #007bff; }
+    .total-amount { color: #d9534f !important; font-size: 22px !important; }
+
+    .invoice-footer { text-align: center; margin-top: 40px; color: #888; font-size: 13px; border-top: 1px solid #eee; padding-top: 20px;}
+
+    .action-buttons { text-align: center; margin-bottom: 50px; }
+    .btn-print { background-color: #28a745; color: white; padding: 12px 25px; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(40,167,69,0.3); margin-bottom: 20px;}
+    .btn-print:hover { background-color: #218838; transform: translateY(-2px); }
+
+    /* 100% BULLETPROOF PRINT CSS */
+    @media print {
+        /* Pehle poore page ki har cheez ko hide kar do (Navbar, footer, sab kuch) */
+        body * {
+            visibility: hidden;
+        }
+        
+        /* Phir sirf hamare invoice box aur uske andar ki cheezon ko wapas visible karo */
+        .invoice-box, .invoice-box * {
+            visibility: visible;
+        }
+        
+        /* Invoice box ko ekdum top-left corner par set kar do taaki page waste na ho */
+        .invoice-box {
+            position: absolute;
+            left: 0;
+            top: 0;
+            margin: 0;
+            padding: 0;
+            box-shadow: none;
+            border: none;
+            width: 100%;
+        }
+        
+        /* Background white rakho */
+        body {
+            background-color: white;
+        }
+    }
+</style>
+
+<div class="invoice-box">
+    
+    <div class="invoice-header">
+        <div class="invoice-logo">
+            <h1>EGARAGE</h1>
+            <p>Official Receipt</p>
+        </div>
+        <div class="invoice-meta">
+            <p class="invoice-number">Invoice No: <span style="color: #007bff;">{{ invoice_no }}</span></p>
+            <p>Date: <strong>{{ invoice_date }}</strong></p>
+        </div>
     </div>
 
-    <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
-        <div>
-            <h4 style="margin: 0 0 10px 0; color: #333;">Billed To:</h4>
-            <p style="margin: 0;"><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
-            <p style="margin: 5px 0 0 0;"><strong>Email:</strong> {{ user.email }}</p>
-            <p style="margin: 5px 0 0 0;"><strong>Mobile:</strong> {{ user.mobile }}</p>
+    <div class="invoice-body">
+        <div class="bill-to">
+            <h4>Billed To:</h4>
+            <p style="font-size: 18px; color: #000;"><strong>{{ user.first_name }} {{ user.last_name }}</strong></p>
+            <p>Email: {{ user.email }}</p>
+            <p>Mobile: {{ user.mobile }}</p>
         </div>
-        <div style="text-align: right;">
-            <h4 style="margin: 0 0 10px 0; color: #333;">Booking Info:</h4>
-            <p style="margin: 0;"><strong>Service:</strong> {{ service.name }}</p>
-            <p style="margin: 5px 0 0 0; color: green; font-weight: bold;">Status: {{ service.status|title }}</p>
+        <div class="service-info" style="text-align: right;">
+            <h4>Booking Info:</h4>
+            <p><strong>Service:</strong> {{ service.name }}</p>
+            
+            {% if service.status|lower == 'pending' %}<span class="status-badge" style="background:#fff3cd; color:#856404;">Status: Pending</span>
+            {% elif service.status|lower == 'approved' %}<span class="status-badge" style="background:#d4edda; color:#155724;">Status: Approved</span>
+            {% elif service.status|lower == 'completed' %}<span class="status-badge" style="background:#cce5ff; color:#004085;">Status: Completed</span>
+            {% else %}<span class="status-badge" style="background:#f8d7da; color:#721c24;">Status: {{ service.status }}</span>{% endif %}
         </div>
     </div>
 
-    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+    <table class="invoice-table">
         <thead>
-            <tr style="background-color: #f8f9fa;">
-                <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">Description</th>
-                <th style="padding: 12px; border: 1px solid #ddd; text-align: right;">Amount</th>
+            <tr>
+                <th>Description</th>
+                <th class="right">Amount</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td style="padding: 12px; border: 1px solid #ddd;">Advance Booking Fee for {{ service.name }}</td>
-                <td style="padding: 12px; border: 1px solid #ddd; text-align: right;">₹499.00</td>
+                <td>Advance Booking Fee for <strong>{{ service.name }}</strong></td>
+                <td class="right">₹499.00</td>
             </tr>
-            <tr style="background-color: #f8f9fa; font-weight: bold;">
-                <td style="padding: 12px; border: 1px solid #ddd; text-align: right;">Total Amount to be Paid:</td>
-                <td style="padding: 12px; border: 1px solid #ddd; text-align: right; color: #d9534f; font-size: 18px;">₹499.00</td>
+            <tr class="total-row">
+                <td class="right">Total Amount to be Paid:</td>
+                <td class="right total-amount">₹499.00</td>
             </tr>
         </tbody>
     </table>
 
-    <div style="text-align: center; margin-top: 40px;">
-        <button onclick="window.print()" style="background-color: #28a745; color: white; padding: 12px 25px; border: none; border-radius: 5px; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">🖨️ Print / Save as PDF</button>
-        <br><br>
-        <a href="{% url 'user_dashboard' %}" style="color: #007bff; text-decoration: none;">&larr; Back to Dashboard</a>
+    <div class="invoice-footer">
+        <p>Thank you for choosing Egarage! Please present this invoice at the garage upon arrival.</p>
+        <p>For any queries, contact support@egarage.com</p>
     </div>
 
 </div>
 
-<style>
-    @media print {
-      .navbar, footer, .back-btn, button {
-        display: none !important;
-      }
-    }
-</style>
+<div class="action-buttons">
+    <button onclick="window.print()" class="btn-print">🖨️ Print / Save as PDF</button>
+    <br>
+    <a href="{% url 'user_dashboard' %}" style="color: #007bff; text-decoration: none; font-weight: bold; font-size: 15px;">&larr; Back to Dashboard</a>
+</div>
+
 {% endblock %}

@@ -1,3 +1,15 @@
-<h3>Owner Sidebar</h3>
-<br>
-<a href="{% url 'logout' %}" style="color: red; font-weight: bold;">Logout</a>
+<nav style="background: linear-gradient(135deg, #1a237e, #283593, #3f51b5); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 30px;">
+    
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 24px; color: #fff;">🏢</span>
+        <h2 style="margin: 0; color: white; font-size: 20px; font-weight: 700; letter-spacing: 1px;">Egarage Owner Portal</h2>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <span style="color: #e1e5eb; font-size: 14px; font-weight: 500;">Welcome, {{ request.user.first_name|default:"Owner" }}</span>
+        <a href="{% url 'logout' %}" style="background-color: #ff4757; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; transition: background 0.3s; display: inline-block;">
+            Logout 🚪
+        </a>
+    </div>
+
+</nav>

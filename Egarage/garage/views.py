@@ -7,6 +7,9 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 from django.core.mail import send_mail
 from django.conf import settings
+import datetime
+
+
 
 # Create your views here.
 @login_required(login_url="login")
@@ -151,18 +154,35 @@ def cancelBooking(request, id):
 
     return redirect("user_dashboard")
 
-# --- NAYA LEVEL 3 LOGIC: INVOICE GENERATOR ---
 @login_required(login_url="login")
 @role_required(allowed_roles=["user"])
 def generateInvoice(request, id):
     # Jis service ka bill chahiye, use uthao
     service = ParkingSlot.objects.get(id=id)
-    
+
     # Ek basic security check (Sirf wahi user apna bill dekh paye jisne book kiya hai)
     if service.booked_by != request.user:
         return redirect("user_dashboard")
-        
-    return render(request, "garage/user/invoice.html", {"service": service, "user": request.user})
+
+    # --- NAYA LOGIC: SMART INVOICE GENERATOR ---
+    
+    # 1. Aaj ki date nikalenge (Format: 04 April 2026)
+    today = datetime.date.today()
+    invoice_date = today.strftime("%d %B %Y") 
+    
+    # 2. Ek unique Invoice Number banayenge (Year + Service ID combination)
+    # Zfill (04d) lagane se ID=8 ban jayega '0008' jisse real bill feel aayega
+    invoice_no = f"INV-{today.year}-{service.id:04d}"
+
+    # 3. Context mein naye variables pass karenge
+    context = {
+        "service": service, 
+        "user": request.user,
+        "invoice_date": invoice_date,
+        "invoice_no": invoice_no
+    }
+
+    return render(request, "garage/user/invoice.html", context)
 
 
 @login_required(login_url="login")
