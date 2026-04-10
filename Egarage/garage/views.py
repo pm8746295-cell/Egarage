@@ -60,14 +60,22 @@ def userDashboardView(request):
 def createParking(request):
     if request.method =="POST":
         print(request.POST)
-        form = ParkingSlotCreationForm(request.POST,request.FILES)
+        form = ParkingSlotCreationForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            # 1. Form ko hold par rakho (direct save mat karo)
+            new_service = form.save(commit=False)
+            
+            # 2. Jo user login hai, usko is service ka owner bana do
+            new_service.owner = request.user
+            
+            # 3. Ab data ekdum complete hai, isko database me save kar do
+            new_service.save()
+            
             return redirect("owner_dashboard")
-            #return render(request,"htm",{parkings:parking})
     else:
         form = ParkingSlotCreationForm()
-    return render(request,"garage/owner/create_parking.html",{"form":form})
+        
+    return render(request, "garage/owner/create_parking.html", {"form":form})
 
 @login_required(login_url="login")
 @role_required(allowed_roles=["user"])
