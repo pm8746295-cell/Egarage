@@ -10,23 +10,19 @@ def userSignupView(request):
     if request.method == "POST":
         form = UserSignupForm(request.POST or None)
         if form.is_valid():
-            # STEP 1: Save User
             user = form.save()
-            
-            # STEP 2: Professional Dynamic Email Logic
+
             try:
-                user_name = user.first_name if user.first_name else user.email
+                user_name = f"{user.first_name} {user.last_name}".strip()
+                if not user_name:
+                    user_name = user.email
+
                 user_role = user.role if hasattr(user, 'role') else "Customer"
-                
-                # Yeh line MAGIC karegi! (Dynamic Domain)
-                # Agar localhost pe ho toh '127.0.0.1:8000' nikalega, aur live pe ho toh 'www.egarage.com'
-                domain = request.get_host() 
+                domain = request.get_host()
                 protocol = 'https' if request.is_secure() else 'http'
                 login_link = f"{protocol}://{domain}/core/login/"
 
                 subject = "Welcome to Egarage – Your Account is Ready! 🚗✨"
-                
-                # Naya "Pro Email" Format (Jaisa aapne suggest kiya)
                 message = f"""Hello {user_name},
 
 🎉 Welcome to Egarage!
@@ -43,8 +39,8 @@ If you have any questions, feel free to reply to this email.
 
 Thank you,
 Team Egarage
-(Managed by Mihir Patel)
 """
+
                 send_mail(
                     subject=subject,
                     message=message,
@@ -52,17 +48,18 @@ Team Egarage
                     recipient_list=[user.email],
                     fail_silently=True
                 )
+
             except Exception as e:
                 print("Email nahi gaya, Error:", e)
 
-            # STEP 3: Redirect
+            messages.success(request, "Account created successfully. Please login.")
             return redirect('login')
-            
         else:
-            return render(request, 'core/signup.html', {'form': form})  
+            messages.error(request, "Please correct the errors below.")
     else:
         form = UserSignupForm()
-        return render(request, 'core/signup.html', {'form': form})
+
+    return render(request, 'core/signup.html', {'form': form})
 
 
 def userLoginView(request):
