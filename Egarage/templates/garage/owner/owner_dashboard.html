@@ -148,6 +148,9 @@
                     
                     <div style="flex-grow: 1;">
                         <h4 class="s-card-title">{{ parking.name }}</h4>
+                        <p style="margin: 0 0 15px 0; font-size: 15px; font-weight: bold; color: #007bff;">
+                            Price: ₹{{ parking.amount|default:"499" }}
+                        </p>
 
                         <div class="status-group">
                             <div style="display: flex; align-items: center; gap: 10px;">

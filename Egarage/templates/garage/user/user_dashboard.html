@@ -201,7 +201,7 @@
                 {% for history in my_history %}
                 <tr>
                     <td><strong>{{ history.name }}</strong></td>
-                    <td>₹499</td>
+                    <td>₹{{ history.amount|default:"499" }}</td>
                     <td>
                         {% if history.status|lower == 'pending' %}<span class="eg-badge bg-pend">Pending</span>
                         {% elif history.status|lower == 'approved' %}<span class="eg-badge bg-appr">Approved</span>
@@ -246,6 +246,9 @@
                 
                 <div class="eg-card-body">
                     <h4>{{ service.name }}</h4>
+                    <p style="margin-bottom: 10px; font-size: 16px; color: #007bff; font-weight: bold;">
+                        Price: ₹{{ service.amount|default:"499" }}
+                    </p>
                     <p>Status: 
                         {% if service.is_booked %} <span style="color:#dc3545;">Currently Unavailable</span> 
                         {% else %} <span style="color:#28a745;">Available</span> {% endif %}
@@ -253,7 +256,7 @@
 
                     <div class="eg-card-footer">
                         {% if not service.is_booked %}
-                            <a href="{% url 'book_service' service.id %}" class="eg-btn-book">Book Now</a>
+                            <a href="{% url 'book_service' service.id %}" class="eg-btn-book">Book Service</a>
                         {% else %}
                             <div style="height: 40px;"></div>
                         {% endif %}

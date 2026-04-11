@@ -1,193 +1,222 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .decorators import role_required
 from .forms import ParkingSlotCreationForm
-from .models import ParkingSlot  # <--- NAYI LINE: Database table import kiya
+from .models import ParkingSlot
 from django.contrib.auth import get_user_model
-User = get_user_model()
 from django.core.mail import send_mail
 from django.conf import settings
 import datetime
 
+User = get_user_model()
 
 
-# Create your views here.
 @login_required(login_url="login")
 @role_required(allowed_roles=["owner"])
 def ownerDashboardView(request):
     query = request.GET.get('q')
-    if query:
-        parkings = ParkingSlot.objects.filter(name__icontains=query)
-    else:
-        parkings = ParkingSlot.objects.all()
 
-    # --- NAYA PRO LOGIC FOR ANALYTICS ---
-    total_services = ParkingSlot.objects.count()
-    
-    # 1. Jo gaadiyan abhi garage mein hain (Pending/Approved)
-    active_bookings = ParkingSlot.objects.filter(is_booked=True).count()
-    
-    # 2. Jo gaadiyan service ho chuki hain (Completed)
-    completed_bookings = ParkingSlot.objects.filter(status='Completed').count()
-    
-    # 3. Total Earnings = (Active gaadiyan + Complete ho chuki gaadiyan) * 499
-    # Ab paise kabhi kam nahi honge!
-    total_earnings = (active_bookings + completed_bookings) * 499
+    parkings = ParkingSlot.objects.filter(owner=request.user).order_by('-created_at')
+
+    if query:
+        parkings = parkings.filter(name__icontains=query)
+
+    total_services = ParkingSlot.objects.filter(owner=request.user).count()
+    active_bookings = ParkingSlot.objects.filter(
+        owner=request.user,
+        is_booked=True,
+        status__in=['pending', 'approved']
+    ).count()
+    completed_bookings = ParkingSlot.objects.filter(
+        owner=request.user,
+        status='completed'
+    ).count()
+
+    total_earnings = ParkingSlot.objects.filter(
+        owner=request.user,
+        status='completed'
+    ).exclude(amount__isnull=True)
+
+    total_earnings_value = sum(service.amount for service in total_earnings)
 
     context = {
         "parkings": parkings,
         "total_services": total_services,
         "active_bookings": active_bookings,
-        "total_earnings": total_earnings
+        "completed_bookings": completed_bookings,
+        "total_earnings": total_earnings_value,
     }
-    
-    return render(request, "garage/owner/owner_dashboard.html", context)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+    return render(request, "garage/owner/owner_dashboard.html", context)
+
 
 @login_required(login_url="login")
-@role_required(allowed_roles=["user"]) #check in core.urls.py login name should exist.. 
+@role_required(allowed_roles=["user"])
 def userDashboardView(request):
-    query = request.GET.get('q') # User dashboard ke liye bhi same search
+    query = request.GET.get('q')
+
+    services = ParkingSlot.objects.all().order_by('-created_at')
     if query:
-        services = ParkingSlot.objects.filter(name__icontains=query)
-    else:
+        services = services.filter(name__icontains=query)
 
-        services = ParkingSlot.objects.all()  # <--- NAYI LINE: Database se saari services utha li
-    my_history = ParkingSlot.objects.filter(booked_by=request.user)
-    return render(request, "garage/user/user_dashboard.html", {"services": services, "my_history": my_history})
+    my_history = ParkingSlot.objects.filter(booked_by=request.user).order_by('-updated_at')
 
-   
+    return render(
+        request,
+        "garage/user/user_dashboard.html",
+        {
+            "services": services,
+            "my_history": my_history
+        }
+    )
 
+
+@login_required(login_url="login")
+@role_required(allowed_roles=["owner"])
 def createParking(request):
-    if request.method =="POST":
-        print(request.POST)
+    if request.method == "POST":
         form = ParkingSlotCreationForm(request.POST, request.FILES)
         if form.is_valid():
-            # 1. Form ko hold par rakho (direct save mat karo)
             new_service = form.save(commit=False)
-            
-            # 2. Jo user login hai, usko is service ka owner bana do
             new_service.owner = request.user
-            
-            # 3. Ab data ekdum complete hai, isko database me save kar do
+
+            # Naya service create karte waqt default state clean rakho
+            if not new_service.is_booked:
+                new_service.booked_by = None
+                new_service.status = 'pending'
+
             new_service.save()
-            
             return redirect("owner_dashboard")
     else:
         form = ParkingSlotCreationForm()
-        
-    return render(request, "garage/owner/create_parking.html", {"form":form})
+
+    return render(request, "garage/owner/create_parking.html", {"form": form})
+
 
 @login_required(login_url="login")
 @role_required(allowed_roles=["user"])
 def bookService(request, id):
-    service = ParkingSlot.objects.get(id=id)
-    amount = 499 
-    
+    service = get_object_or_404(ParkingSlot, id=id)
+
+    if service.is_booked:
+        return redirect("user_dashboard")
+
+    amount = service.amount if service.amount else 499
+
     if request.method == "POST":
-        service.is_booked = True 
+        service.is_booked = True
         service.booked_by = request.user
-        service.status = 'pending'  
-        service.save()           
-        
-        
+        service.status = 'pending'
+        service.save()
+
         try:
             subject = f"Egarage - Booking Confirmed: {service.name}"
-            # Message mein humne aapka naam bhi daal diya as developer! 😎
-            message = f"Hello {request.user.first_name},\n\nYour booking for '{service.name}' has been confirmed successfully.\nAmount to be paid at garage: ₹499.\n\nThank you for choosing Egarage!\n- Developed by Mihir Patel"
-            send_mail(subject, message, settings.EMAIL_HOST_USER, [request.user.email], fail_silently=True)
+            message = (
+                f"Hello {request.user.first_name or request.user.email},\n\n"
+                f"Your booking for '{service.name}' has been confirmed successfully.\n"
+                f"Amount to be paid at garage: ₹{amount}.\n\n"
+                f"Thank you for choosing Egarage!\n"
+                f"- Team Egarage"
+            )
+            send_mail(
+                subject,
+                message,
+                settings.EMAIL_HOST_USER,
+                [request.user.email],
+                fail_silently=True
+            )
         except Exception as e:
             print("Email nahi gaya, Error:", e)
-        
 
-        return redirect("user_dashboard") 
-        
-    return render(request, "garage/user/booking.html", {"service": service, "amount": amount})
+        return redirect("user_dashboard")
 
-# --- UPDATE (Edit) SERVICE ---
+    return render(
+        request,
+        "garage/user/booking.html",
+        {
+            "service": service,
+            "amount": amount
+        }
+    )
+
+
 @login_required(login_url="login")
 @role_required(allowed_roles=["owner"])
 def updateParking(request, id):
-    parking = ParkingSlot.objects.get(id=id) # Specific service nikali
+    parking = get_object_or_404(ParkingSlot, id=id, owner=request.user)
+
     if request.method == "POST":
-        # instance=parking likhna zaroori hai taaki purani hi update ho
         form = ParkingSlotCreationForm(request.POST, request.FILES, instance=parking)
         if form.is_valid():
-            form.save()
+            updated_service = form.save(commit=False)
+
+            # Agar owner manually unavailable hata de to booking info reset ho
+            if not updated_service.is_booked:
+                updated_service.booked_by = None
+                if updated_service.status == 'approved':
+                    updated_service.status = 'pending'
+
+            updated_service.save()
             return redirect("owner_dashboard")
     else:
-        form = ParkingSlotCreationForm(instance=parking) # Purana data form me bhara aayega
-    
+        form = ParkingSlotCreationForm(instance=parking)
+
     return render(request, "garage/owner/update_parking.html", {"form": form})
 
-# --- DELETE SERVICE ---
+
 @login_required(login_url="login")
 @role_required(allowed_roles=["owner"])
 def deleteParking(request, id):
-    parking = ParkingSlot.objects.get(id=id)
-    parking.delete() # Database se permanently uda diya
+    parking = get_object_or_404(ParkingSlot, id=id, owner=request.user)
+    parking.delete()
     return redirect("owner_dashboard")
 
 
 @login_required(login_url="login")
 def editProfile(request):
     if request.method == "POST":
-        # 1. Asali user ko database se nikalo
         current_user = User.objects.get(id=request.user.id)
-        
-        # 2. Form ka data usme daalo
         current_user.first_name = request.POST.get('first_name')
         current_user.last_name = request.POST.get('last_name')
         current_user.mobile = request.POST.get('mobile')
-        
-        # 3. Database me permanently save karo
-        current_user.save() 
-        
+        current_user.save()
+
         if current_user.role == 'owner':
             return redirect("owner_dashboard")
-        else:
-            return redirect("user_dashboard")
-            
+        return redirect("user_dashboard")
+
     return render(request, "garage/edit_profile.html", {"user": request.user})
+
 
 @login_required(login_url="login")
 @role_required(allowed_roles=["user"])
 def cancelBooking(request, id):
-    service = ParkingSlot.objects.get(id=id)
+    service = get_object_or_404(ParkingSlot, id=id, booked_by=request.user)
 
-    if service.booked_by == request.user:
-        service.is_booked = False
-        service.booked_by = None
-        service.status = 'pending'
-        service.save()
+    service.is_booked = False
+    service.booked_by = None
+    service.status = 'cancelled'
+    service.save()
 
     return redirect("user_dashboard")
+
 
 @login_required(login_url="login")
 @role_required(allowed_roles=["user"])
 def generateInvoice(request, id):
-    # Jis service ka bill chahiye, use uthao
-    service = ParkingSlot.objects.get(id=id)
+    service = get_object_or_404(ParkingSlot, id=id, booked_by=request.user)
 
-    # Ek basic security check (Sirf wahi user apna bill dekh paye jisne book kiya hai)
-    if service.booked_by != request.user:
-        return redirect("user_dashboard")
-
-    # --- NAYA LOGIC: SMART INVOICE GENERATOR ---
-    
-    # 1. Aaj ki date nikalenge (Format: 04 April 2026)
     today = datetime.date.today()
-    invoice_date = today.strftime("%d %B %Y") 
-    
-    # 2. Ek unique Invoice Number banayenge (Year + Service ID combination)
-    # Zfill (04d) lagane se ID=8 ban jayega '0008' jisse real bill feel aayega
+    invoice_date = today.strftime("%d %B %Y")
     invoice_no = f"INV-{today.year}-{service.id:04d}"
+    amount = service.amount if service.amount else 499
 
-    # 3. Context mein naye variables pass karenge
     context = {
-        "service": service, 
+        "service": service,
         "user": request.user,
         "invoice_date": invoice_date,
-        "invoice_no": invoice_no
+        "invoice_no": invoice_no,
+        "amount": amount,
     }
 
     return render(request, "garage/user/invoice.html", context)
@@ -196,28 +225,29 @@ def generateInvoice(request, id):
 @login_required(login_url="login")
 @role_required(allowed_roles=["owner"])
 def approveBooking(request, id):
-    booking = ParkingSlot.objects.get(id=id)
+    booking = get_object_or_404(ParkingSlot, id=id, owner=request.user)
     booking.status = 'approved'
     booking.save()
     return redirect("owner_dashboard")
 
+
 @login_required(login_url="login")
 @role_required(allowed_roles=["owner"])
 def rejectBooking(request, id):
-    booking = ParkingSlot.objects.get(id=id)
-    booking.status = 'pending'
+    booking = get_object_or_404(ParkingSlot, id=id, owner=request.user)
+    booking.status = 'cancelled'
     booking.is_booked = False
     booking.booked_by = None
     booking.save()
     return redirect("owner_dashboard")
 
+
 @login_required(login_url="login")
 @role_required(allowed_roles=["owner"])
 def completeBooking(request, id):
-    booking = ParkingSlot.objects.get(id=id)
+    booking = get_object_or_404(ParkingSlot, id=id, owner=request.user)
     booking.status = 'completed'
     booking.is_booked = False
+    booking.booked_by = None
     booking.save()
     return redirect("owner_dashboard")
-
-
