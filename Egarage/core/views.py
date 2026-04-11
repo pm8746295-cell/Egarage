@@ -3,6 +3,7 @@ from .forms import UserSignupForm,UserLoginForm
 from django.contrib.auth import authenticate,login,logout
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib import messages
 
 # Create your views here.
 def userSignupView(request):
@@ -65,25 +66,27 @@ Team Egarage
 
 
 def userLoginView(request):
-  if request.method =="POST":
-    form = UserLoginForm(request.POST or None)
-    if form.is_valid():
-      print(form.cleaned_data)
-      email = form.cleaned_data['email']
-      password = form.cleaned_data['password']
-      user = authenticate(request,email=email,password=password) #it will check in database..
-      if user:
-        login(request,user)
-        if user.role == "owner":
-          return redirect("owner_dashboard") #garage.urls.py name...
-        elif user.role == "user":
-          return redirect("user_dashboard") #garage.urls.py name...
-      else:
-        return render(request,'core/login.html',{'form':form})  
-    
-  else:
-    form = UserLoginForm()
-    return render(request,'core/login.html',{'form':form})
+    if request.method == "POST":
+        form = UserLoginForm(request.POST or None)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            user = authenticate(request, email=email, password=password)
+
+            if user:
+                login(request, user)
+                if user.role == "owner":
+                    return redirect("owner_dashboard")
+                elif user.role == "user":
+                    return redirect("user_dashboard")
+            else:
+                messages.error(request, "Invalid email or password.")
+        else:
+            messages.error(request, "Please enter valid login details.")
+    else:
+        form = UserLoginForm()
+
+    return render(request, 'core/login.html', {'form': form})
   
 def userLogoutView(request):
     logout(request) # Ye user ko system se bahar nikal dega

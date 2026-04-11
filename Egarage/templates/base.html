@@ -18,6 +18,23 @@
     {% endif %}
 
     <div style="flex: 1;">
+        {% if messages %}
+            <div style="max-width: 1100px; margin: 20px auto 0 auto; padding: 0 20px;">
+                {% for message in messages %}
+                    <div style="
+                        margin-bottom: 10px;
+                        padding: 12px 16px;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        background-color: #f8d7da;
+                        color: #842029;
+                        border: 1px solid #f5c2c7;
+                    ">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
         {% block content %}
         {% endblock %}
     </div>

@@ -258,7 +258,9 @@
                         {% if not service.is_booked %}
                             <a href="{% url 'book_service' service.id %}" class="eg-btn-book">Book Service</a>
                         {% else %}
-                            <div style="height: 40px;"></div>
+                             <div class="eg-btn-book" style="background:#6c757d; cursor:not-allowed;">
+                                Unavailable
+                            </div>
                         {% endif %}
                     </div>
                 </div>
