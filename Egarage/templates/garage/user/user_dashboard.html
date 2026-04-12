@@ -200,8 +200,8 @@
             <tbody>
                 {% for history in my_history %}
                 <tr>
-                    <td><strong>{{ history.name }}</strong></td>
-                    <td>₹{{ history.amount|default:"499" }}</td>
+                    <td><strong>{{ history.service.name }}</strong></td>
+                    <td>₹{{ history.amount }}</td>
                     <td>
                         {% if history.status|lower == 'pending' %}<span class="eg-badge bg-pend">Pending</span>
                         {% elif history.status|lower == 'approved' %}<span class="eg-badge bg-appr">Approved</span>

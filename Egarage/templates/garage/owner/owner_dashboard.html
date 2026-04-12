@@ -136,6 +136,7 @@
 
     <div class="service-grid">
         {% for parking in parkings %}
+        {% with latest_booking=parking.bookings.last %}
             <div class="s-card">
                 
                 {% if parking.parkingImage %}
@@ -168,24 +169,27 @@
                                 {% endif %}
                             </div>
 
-                            {% if parking.is_booked and parking.booked_by %}
+                            {% if parking.is_booked and latest_booking %}
                                 <div class="booked-by">
-                                    👤 <strong>Booked By:</strong> 
-                                    {% if parking.booked_by.first_name %}{{ parking.booked_by.first_name }}
-                                    {% else %}{{ parking.booked_by.email }}{% endif %}
+                                    👤 <strong>Booked By:</strong>
+                                    {% if latest_booking.user.first_name %}
+                                        {{ latest_booking.user.first_name }}
+                                    {% else %}
+                                        {{ latest_booking.user.email }}
+                                    {% endif %}
                                 </div>
                             {% endif %}
                         </div>
 
-                        {% if parking.is_booked %}
-                            {% if parking.status|lower == 'pending' %}
+                        {% if parking.is_booked and latest_booking %}
+                            {% if latest_booking.status|lower == 'pending' %}
                                 <div class="action-row">
-                                    <a href="{% url 'approve_booking' parking.id %}" class="btn-sm bg-success">✅ Approve</a>
-                                    <a href="{% url 'reject_booking' parking.id %}" class="btn-sm bg-danger">❌ Reject</a>
+                                    <a href="{% url 'approve_booking' latest_booking.id %}" class="btn-sm bg-success">✅ Approve</a>
+                                    <a href="{% url 'reject_booking' latest_booking.id %}" class="btn-sm bg-danger">❌ Reject</a>
                                 </div>
-                            {% elif parking.status|lower == 'approved' %}
+                            {% elif latest_booking.status|lower == 'approved' %}
                                 <div class="action-row">
-                                    <a href="{% url 'complete_booking' parking.id %}" class="btn-sm bg-primary">☑️ Mark Completed</a>
+                                    <a href="{% url 'complete_booking' latest_booking.id %}" class="btn-sm bg-primary">☑️ Mark Completed</a>
                                 </div>
                             {% endif %}
                         {% endif %}
@@ -198,11 +202,13 @@
 
                 </div>
             </div>
+            {% endwith %}
         {% empty %}
             <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: white; border-radius: 12px; border: 1px solid #eaeaea; color: #666;">
                 <p style="font-size: 18px; margin: 0;">No garage services added yet.</p>
                 <a href="{% url 'create_parking' %}" class="btn btn-add" style="margin-top: 15px;">+ Add Your First Service</a>
             </div>
+            
         {% endfor %}
     </div>
 

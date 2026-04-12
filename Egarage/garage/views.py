@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .decorators import role_required
 from .forms import ParkingSlotCreationForm
-from .models import ParkingSlot
+from .models import ParkingSlot, Booking
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
@@ -17,33 +17,26 @@ def ownerDashboardView(request):
     query = request.GET.get('q')
 
     parkings = ParkingSlot.objects.filter(owner=request.user).order_by('-created_at')
-
     if query:
         parkings = parkings.filter(name__icontains=query)
 
     total_services = ParkingSlot.objects.filter(owner=request.user).count()
-    active_bookings = ParkingSlot.objects.filter(
+    active_bookings = Booking.objects.filter(
         owner=request.user,
-        is_booked=True,
         status__in=['pending', 'approved']
     ).count()
-    completed_bookings = ParkingSlot.objects.filter(
+
+    completed_bookings = Booking.objects.filter(
         owner=request.user,
         status='completed'
-    ).count()
+    )
 
-    total_earnings = ParkingSlot.objects.filter(
-        owner=request.user,
-        status='completed'
-    ).exclude(amount__isnull=True)
-
-    total_earnings_value = sum(service.amount for service in total_earnings)
+    total_earnings_value = sum(booking.amount for booking in completed_bookings)
 
     context = {
         "parkings": parkings,
         "total_services": total_services,
         "active_bookings": active_bookings,
-        "completed_bookings": completed_bookings,
         "total_earnings": total_earnings_value,
     }
 
@@ -59,7 +52,7 @@ def userDashboardView(request):
     if query:
         services = services.filter(name__icontains=query)
 
-    my_history = ParkingSlot.objects.filter(booked_by=request.user).order_by('-updated_at')
+    my_history = Booking.objects.filter(user=request.user).order_by('-booking_date')
 
     return render(
         request,
@@ -104,6 +97,14 @@ def bookService(request, id):
     amount = service.amount if service.amount else 499
 
     if request.method == "POST":
+        booking = Booking.objects.create(
+            service=service,
+            user=request.user,
+            owner=service.owner,
+            amount=amount,
+            status='pending'
+        )
+
         service.is_booked = True
         service.booked_by = request.user
         service.status = 'pending'
@@ -113,8 +114,9 @@ def bookService(request, id):
             subject = f"Egarage - Booking Confirmed: {service.name}"
             message = (
                 f"Hello {request.user.first_name or request.user.email},\n\n"
-                f"Your booking for '{service.name}' has been confirmed successfully.\n"
-                f"Amount to be paid at garage: ₹{amount}.\n\n"
+                f"Your booking request for '{service.name}' has been submitted successfully.\n"
+                f"Amount: ₹{amount}\n"
+                f"Current Status: Pending\n\n"
                 f"Thank you for choosing Egarage!\n"
                 f"- Team Egarage"
             )
@@ -191,8 +193,12 @@ def editProfile(request):
 @login_required(login_url="login")
 @role_required(allowed_roles=["user"])
 def cancelBooking(request, id):
-    service = get_object_or_404(ParkingSlot, id=id, booked_by=request.user)
+    booking = get_object_or_404(Booking, id=id, user=request.user)
 
+    booking.status = 'cancelled'
+    booking.save()
+
+    service = booking.service
     service.is_booked = False
     service.booked_by = None
     service.status = 'cancelled'
@@ -204,19 +210,19 @@ def cancelBooking(request, id):
 @login_required(login_url="login")
 @role_required(allowed_roles=["user"])
 def generateInvoice(request, id):
-    service = get_object_or_404(ParkingSlot, id=id, booked_by=request.user)
+    booking = get_object_or_404(Booking, id=id, user=request.user)
 
     today = datetime.date.today()
     invoice_date = today.strftime("%d %B %Y")
-    invoice_no = f"INV-{today.year}-{service.id:04d}"
-    amount = service.amount if service.amount else 499
+    invoice_no = f"INV-{today.year}-{booking.id:04d}"
 
     context = {
-        "service": service,
+        "booking": booking,
+        "service": booking.service,
         "user": request.user,
         "invoice_date": invoice_date,
         "invoice_no": invoice_no,
-        "amount": amount,
+        "amount": booking.amount,
     }
 
     return render(request, "garage/user/invoice.html", context)
@@ -225,29 +231,49 @@ def generateInvoice(request, id):
 @login_required(login_url="login")
 @role_required(allowed_roles=["owner"])
 def approveBooking(request, id):
-    booking = get_object_or_404(ParkingSlot, id=id, owner=request.user)
+    booking = get_object_or_404(Booking, id=id, owner=request.user)
+
     booking.status = 'approved'
     booking.save()
+
+    service = booking.service
+    service.status = 'approved'
+    service.is_booked = True
+    service.booked_by = booking.user
+    service.save()
+
     return redirect("owner_dashboard")
 
 
 @login_required(login_url="login")
 @role_required(allowed_roles=["owner"])
 def rejectBooking(request, id):
-    booking = get_object_or_404(ParkingSlot, id=id, owner=request.user)
-    booking.status = 'cancelled'
-    booking.is_booked = False
-    booking.booked_by = None
+    booking = get_object_or_404(Booking, id=id, owner=request.user)
+
+    booking.status = 'rejected'
     booking.save()
+
+    service = booking.service
+    service.status = 'cancelled'
+    service.is_booked = False
+    service.booked_by = None
+    service.save()
+
     return redirect("owner_dashboard")
 
 
 @login_required(login_url="login")
 @role_required(allowed_roles=["owner"])
 def completeBooking(request, id):
-    booking = get_object_or_404(ParkingSlot, id=id, owner=request.user)
+    booking = get_object_or_404(Booking, id=id, owner=request.user)
+
     booking.status = 'completed'
-    booking.is_booked = False
-    booking.booked_by = None
     booking.save()
+
+    service = booking.service
+    service.status = 'completed'
+    service.is_booked = False
+    service.booked_by = None
+    service.save()
+
     return redirect("owner_dashboard")
