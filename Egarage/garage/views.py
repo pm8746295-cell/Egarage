@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
 import datetime
+from django.contrib import messages
 
 User = get_user_model()
 
@@ -79,6 +80,7 @@ def createParking(request):
                 new_service.status = 'pending'
 
             new_service.save()
+            messages.success(request, "Service added successfully.")
             return redirect("owner_dashboard")
     else:
         form = ParkingSlotCreationForm()
@@ -92,6 +94,7 @@ def bookService(request, id):
     service = get_object_or_404(ParkingSlot, id=id)
 
     if service.is_booked:
+        messages.success(request, "Booking request submitted successfully.")
         return redirect("user_dashboard")
 
     amount = service.amount if service.amount else 499
@@ -159,6 +162,7 @@ def updateParking(request, id):
                     updated_service.status = 'pending'
 
             updated_service.save()
+            messages.success(request, "Service updated successfully.")
             return redirect("owner_dashboard")
     else:
         form = ParkingSlotCreationForm(instance=parking)
@@ -171,6 +175,7 @@ def updateParking(request, id):
 def deleteParking(request, id):
     parking = get_object_or_404(ParkingSlot, id=id, owner=request.user)
     parking.delete()
+    messages.success(request, "Service deleted successfully.")
     return redirect("owner_dashboard")
 
 
@@ -204,6 +209,7 @@ def cancelBooking(request, id):
     service.status = 'cancelled'
     service.save()
 
+    messages.success(request, "Booking cancelled successfully.")
     return redirect("user_dashboard")
 
 
@@ -242,6 +248,7 @@ def approveBooking(request, id):
     service.booked_by = booking.user
     service.save()
 
+    messages.success(request, "Booking approved successfully.")
     return redirect("owner_dashboard")
 
 
@@ -259,6 +266,7 @@ def rejectBooking(request, id):
     service.booked_by = None
     service.save()
 
+    messages.success(request, "Booking rejected successfully.")     
     return redirect("owner_dashboard")
 
 
@@ -276,4 +284,5 @@ def completeBooking(request, id):
     service.booked_by = None
     service.save()
 
+    messages.success(request, "Service marked as completed.")
     return redirect("owner_dashboard")

@@ -18,22 +18,37 @@
     {% endif %}
 
     <div style="flex: 1;">
+        
         {% if messages %}
-            <div style="max-width: 1100px; margin: 20px auto 0 auto; padding: 0 20px;">
-                {% for message in messages %}
-                    <div style="
-                        margin-bottom: 10px;
-                        padding: 12px 16px;
-                        border-radius: 8px;
-                        font-weight: 600;
-                        background-color: #f8d7da;
-                        color: #842029;
-                        border: 1px solid #f5c2c7;
-                    ">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
+        <div id="toast-container" style="position: fixed; top: 80px; right: 20px; z-index: 9999;">
+            {% for message in messages %}
+                <div class="custom-toast" style="
+                    padding: 12px 20px;
+                    margin-bottom: 10px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+                    min-width: 280px;
+                    font-weight: 600;
+                    opacity: 1;
+                    transition: opacity 0.5s ease;
+                    {% if message.tags == 'success' %}
+                        background: #28a745;
+                        color: white;
+                    {% elif message.tags == 'error' %}
+                        background: #dc3545;
+                        color: white;
+                    {% elif message.tags == 'warning' %}
+                        background: #ffc107;
+                        color: black;
+                    {% else %}
+                        background: #007bff;
+                        color: white;
+                    {% endif %}
+                ">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
         {% endif %}
         {% block content %}
         {% endblock %}
@@ -43,6 +58,28 @@
         <p style="margin: 0; font-size: 15px;">&copy; 2026 <strong>Egarage System</strong> | All Rights Reserved.</p>
         <p style="margin: 5px 0 0 0; font-size: 14px; color: #ffc107;">Developed with ❤️ by Mihir Patel</p>
     </footer>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(function () {
+            let toasts = document.querySelectorAll(".custom-toast");
+            toasts.forEach(function(toast) {
+                toast.style.opacity = "0";
+                setTimeout(function () {
+                    toast.remove();
+                }, 500);
+            });
+
+            let container = document.getElementById("toast-container");
+            setTimeout(function () {
+                if (container) {
+                    container.remove();
+                }
+            }, 600);
+        }, 4000);
+    });
+    </script>
+
 
 </body>
 </html>
