@@ -73,13 +73,11 @@ def createParking(request):
         if form.is_valid():
             new_service = form.save(commit=False)
             new_service.owner = request.user
-
-            # Naya service create karte waqt default state clean rakho
-            if not new_service.is_booked:
-                new_service.booked_by = None
-                new_service.status = 'pending'
-
+            new_service.is_booked = False
+            new_service.booked_by = None
+            new_service.status = 'available'
             new_service.save()
+
             messages.success(request, "Service added successfully.")
             return redirect("owner_dashboard")
     else:
@@ -94,13 +92,23 @@ def bookService(request, id):
     service = get_object_or_404(ParkingSlot, id=id)
 
     if service.is_booked:
-        messages.success(request, "Booking request submitted successfully.")
+        messages.error(request, "This service is currently unavailable.")
+        return redirect("user_dashboard")
+
+    already_exists = Booking.objects.filter(
+        service=service,
+        user=request.user,
+        status__in=['pending', 'approved']
+    ).exists()
+
+    if already_exists:
+        messages.warning(request, "You already have an active booking for this service.")
         return redirect("user_dashboard")
 
     amount = service.amount if service.amount else 499
 
     if request.method == "POST":
-        booking = Booking.objects.create(
+        Booking.objects.create(
             service=service,
             user=request.user,
             owner=service.owner,
@@ -133,6 +141,7 @@ def bookService(request, id):
         except Exception as e:
             print("Email nahi gaya, Error:", e)
 
+        messages.success(request, "Booking request submitted successfully.")
         return redirect("user_dashboard")
 
     return render(
@@ -158,6 +167,7 @@ def updateParking(request, id):
             # Agar owner manually unavailable hata de to booking info reset ho
             if not updated_service.is_booked:
                 updated_service.booked_by = None
+                updated_service.status = 'available'
                 if updated_service.status == 'approved':
                     updated_service.status = 'pending'
 
@@ -200,13 +210,17 @@ def editProfile(request):
 def cancelBooking(request, id):
     booking = get_object_or_404(Booking, id=id, user=request.user)
 
+    if booking.status not in ['pending', 'approved']:
+        messages.warning(request, "This booking cannot be cancelled now.")
+        return redirect("user_dashboard")
+
     booking.status = 'cancelled'
     booking.save()
 
     service = booking.service
     service.is_booked = False
     service.booked_by = None
-    service.status = 'cancelled'
+    service.status = 'available'
     service.save()
 
     messages.success(request, "Booking cancelled successfully.")
@@ -233,11 +247,14 @@ def generateInvoice(request, id):
 
     return render(request, "garage/user/invoice.html", context)
 
-
 @login_required(login_url="login")
 @role_required(allowed_roles=["owner"])
 def approveBooking(request, id):
     booking = get_object_or_404(Booking, id=id, owner=request.user)
+
+    if booking.status != 'pending':
+        messages.warning(request, "Only pending bookings can be approved.")
+        return redirect("owner_dashboard")
 
     booking.status = 'approved'
     booking.save()
@@ -257,16 +274,20 @@ def approveBooking(request, id):
 def rejectBooking(request, id):
     booking = get_object_or_404(Booking, id=id, owner=request.user)
 
+    if booking.status != 'pending':
+        messages.warning(request, "Only pending bookings can be rejected.")
+        return redirect("owner_dashboard")
+
     booking.status = 'rejected'
     booking.save()
 
     service = booking.service
-    service.status = 'cancelled'
+    service.status = 'available'
     service.is_booked = False
     service.booked_by = None
     service.save()
 
-    messages.success(request, "Booking rejected successfully.")     
+    messages.success(request, "Booking rejected successfully.")
     return redirect("owner_dashboard")
 
 
@@ -275,11 +296,15 @@ def rejectBooking(request, id):
 def completeBooking(request, id):
     booking = get_object_or_404(Booking, id=id, owner=request.user)
 
+    if booking.status != 'approved':
+        messages.warning(request, "Only approved bookings can be marked completed.")
+        return redirect("owner_dashboard")
+
     booking.status = 'completed'
     booking.save()
 
     service = booking.service
-    service.status = 'completed'
+    service.status = 'available'
     service.is_booked = False
     service.booked_by = None
     service.save()

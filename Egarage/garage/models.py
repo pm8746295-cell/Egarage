@@ -3,12 +3,12 @@ from django.conf import settings
 
 class ParkingSlot(models.Model):
     STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('completed', 'Completed'),
-        ('cancelled', 'Cancelled'),
-    )
-
+    ('available', 'Available'),
+    ('pending', 'Pending'),
+    ('approved', 'Approved'),
+    ('completed', 'Completed'),
+    ('cancelled', 'Cancelled'),
+)
     # Nayi line: Owner ke liye (related_name zaroori hai taaki error na aaye)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='owned_services', null=True)
     
@@ -28,7 +28,7 @@ class ParkingSlot(models.Model):
         blank=True,
         related_name='booked_services'
     )
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
 
     def __str__(self):
         return self.name
